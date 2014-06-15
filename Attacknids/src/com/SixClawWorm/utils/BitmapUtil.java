@@ -1,15 +1,5 @@
 package com.SixClawWorm.utils;
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.Bitmap.Config;
-import android.graphics.BitmapFactory;
-import android.graphics.BitmapFactory.Options;
-import android.graphics.Matrix;
-import android.os.Environment;
-import android.os.StatFs;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -19,122 +9,178 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class BitmapUtil
-{
-  public static final String DIR = "/sdcard/hypers";
-  private static int FREE_SD_SPACE_NEEDED_TO_CACHE = 1;
-  private static int MB = 1048576;
-  
-  public static boolean Exist(String paramString)
-  {
-    return new File("/sdcard/hypers" + paramString).exists();
-  }
-  
-  public static Bitmap GetBitmap(String paramString, int paramInt)
-  {
-    if (paramString == null) {
-      return null;
-    }
-    String str = URLEncoder.encode(paramString);
-    Bitmap localBitmap;
-    if (Exist("/sdcard/hypers/" + str)) {
-      localBitmap = BitmapFactory.decodeFile("/sdcard/hypers/" + str);
-    }
-    for (;;)
-    {
-      return localBitmap;
-      try
-      {
-        localURL = new URL(paramString);
-      }
-      catch (Exception localException1)
-      {
-        try
-        {
-          URL localURL;
-          InputStream localInputStream = localURL.openStream();
-          localBitmap = BitmapFactory.decodeStream(localInputStream);
-          if (localBitmap != null) {
-            saveBmpToSd(localBitmap, str, paramInt);
-          }
-          localInputStream.close();
-        }
-        catch (Exception localException2)
-        {
-          break label101;
-        }
-        localException1 = localException1;
-      }
-    }
-    label101:
-    localException1.printStackTrace();
-    return null;
-  }
-  
-  public static Bitmap ReadBitmapById(Context paramContext, int paramInt)
-  {
-    BitmapFactory.Options localOptions = new BitmapFactory.Options();
-    localOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-    localOptions.inPurgeable = true;
-    localOptions.inInputShareable = true;
-    return BitmapFactory.decodeStream(paramContext.getResources().openRawResource(paramInt), null, localOptions);
-  }
-  
-  public static Bitmap ReadBitmapById(Context paramContext, int paramInt1, int paramInt2, int paramInt3)
-  {
-    BitmapFactory.Options localOptions = new BitmapFactory.Options();
-    localOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
-    localOptions.inInputShareable = true;
-    localOptions.inPurgeable = true;
-    return getBitmap(BitmapFactory.decodeStream(paramContext.getResources().openRawResource(paramInt1), null, localOptions), paramInt2, paramInt3);
-  }
-  
-  private static int freeSpaceOnSd()
-  {
-    StatFs localStatFs = new StatFs(Environment.getExternalStorageDirectory().getPath());
-    return (int)(localStatFs.getAvailableBlocks() * localStatFs.getBlockSize() / MB);
-  }
-  
-  public static Bitmap getBitmap(Bitmap paramBitmap, int paramInt1, int paramInt2)
-  {
-    int i = paramBitmap.getWidth();
-    int j = paramBitmap.getHeight();
-    Matrix localMatrix = new Matrix();
-    float f = paramInt1 / i;
-    (paramInt2 / j);
-    localMatrix.postScale(f, f);
-    return Bitmap.createBitmap(paramBitmap, 0, 0, i, j, localMatrix, true);
-  }
-  
-  public static void saveBmpToSd(Bitmap paramBitmap, String paramString, int paramInt)
-  {
-    if (FREE_SD_SPACE_NEEDED_TO_CACHE > freeSpaceOnSd()) {}
-    while (!"mounted".equals(Environment.getExternalStorageState())) {
-      return;
-    }
-    File localFile1 = new File("/sdcard/hypers");
-    if (!localFile1.exists()) {
-      localFile1.mkdirs();
-    }
-    File localFile2 = new File("/sdcard/hypers/" + paramString);
-    try
-    {
-      localFile2.createNewFile();
-      FileOutputStream localFileOutputStream = new FileOutputStream(localFile2);
-      paramBitmap.compress(Bitmap.CompressFormat.PNG, paramInt, localFileOutputStream);
-      localFileOutputStream.flush();
-      localFileOutputStream.close();
-      return;
-    }
-    catch (FileNotFoundException localFileNotFoundException) {}catch (IOException localIOException)
-    {
-      localIOException.printStackTrace();
-    }
-  }
-}
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.os.Environment;
+import android.os.StatFs;
+import android.util.Log;
 
-
-/* Location:           C:\Users\Rodelle\Desktop\Attacknid\Tools\Attacknids-dex2jar.jar
- * Qualified Name:     com.SixClawWorm.utils.BitmapUtil
- * JD-Core Version:    0.7.0.1
- */
+public class BitmapUtil {
+	/**
+	 * 读取本地资源的图片
+	 * 
+	 * @param context
+	 * @param resId
+	 * @return
+	 */
+	public static Bitmap ReadBitmapById(Context context, int resId) {
+		BitmapFactory.Options opt = new BitmapFactory.Options();
+		opt.inPreferredConfig = Bitmap.Config.RGB_565;
+		opt.inPurgeable = true;
+		opt.inInputShareable = true;
+		// 获取资源图片
+		InputStream is = context.getResources().openRawResource(resId);
+		return BitmapFactory.decodeStream(is, null, opt);
+	}
+
+	/***
+	 * 根据资源文件获取Bitmap
+	 * 
+	 * @param context
+	 * @param drawableId
+	 * @return
+	 */
+	public static Bitmap ReadBitmapById(Context context, int drawableId,
+			int screenWidth, int screenHight) {
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inPreferredConfig = Config.ARGB_8888;
+		options.inInputShareable = true;
+		options.inPurgeable = true;
+		InputStream stream = context.getResources().openRawResource(drawableId);
+		Bitmap bitmap = BitmapFactory.decodeStream(stream, null, options);
+		return getBitmap(bitmap, screenWidth, screenHight);
+	}
+
+	/***
+	 * 等比例压缩图片
+	 * 
+	 * @param bitmap
+	 * @param screenWidth
+	 * @param screenHight
+	 * @return
+	 */
+	public static Bitmap getBitmap(Bitmap bitmap, int screenWidth,
+			int screenHight) {
+		int w = bitmap.getWidth();
+		int h = bitmap.getHeight();
+		Log.e("jj", "图片宽度" + w + ",screenWidth=" + screenWidth);
+		Matrix matrix = new Matrix();
+		float scale = (float) screenWidth / w;
+		float scale2 = (float) screenHight / h;
+
+		// scale = scale < scale2 ? scale : scale2;
+
+		// 保证图片不变形.
+		matrix.postScale(scale, scale);
+		// w,h是原图的属性.
+		return Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true);
+	}
+
+	/***
+	 * 保存图片至SD卡
+	 * 
+	 * @param bm
+	 * @param url
+	 * @param quantity
+	 */
+	private static int FREE_SD_SPACE_NEEDED_TO_CACHE = 1;
+	private static int MB = 1024 * 1024;
+	public final static String DIR = "/sdcard/hypers";
+
+	public static void saveBmpToSd(Bitmap bm, String url, int quantity) {
+		// 判断sdcard上的空间
+		if (FREE_SD_SPACE_NEEDED_TO_CACHE > freeSpaceOnSd()) {
+			return;
+		}
+		if (!Environment.MEDIA_MOUNTED.equals(Environment
+				.getExternalStorageState()))
+			return;
+		String filename = url;
+		// 目录不存在就创建
+		File dirPath = new File(DIR);
+		if (!dirPath.exists()) {
+			dirPath.mkdirs();
+		}
+
+		File file = new File(DIR + "/" + filename);
+		try {
+			file.createNewFile();
+			OutputStream outStream = new FileOutputStream(file);
+			bm.compress(Bitmap.CompressFormat.PNG, quantity, outStream);
+			outStream.flush();
+			outStream.close();
+
+		} catch (FileNotFoundException e) {
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/***
+	 * 获取SD卡图片
+	 * 
+	 * @param url
+	 * @param quantity
+	 * @return
+	 */
+	public static Bitmap GetBitmap(String url, int quantity) {
+		InputStream inputStream = null;
+		String filename = "";
+		Bitmap map = null;
+		URL url_Image = null;
+		String LOCALURL = "";
+		if (url == null)
+			return null;
+		try {
+			filename = url;
+		} catch (Exception err) {
+		}
+
+		LOCALURL = URLEncoder.encode(filename);
+		if (Exist(DIR + "/" + LOCALURL)) {
+			map = BitmapFactory.decodeFile(DIR + "/" + LOCALURL);
+		} else {
+			try {
+				url_Image = new URL(url);
+				inputStream = url_Image.openStream();
+				map = BitmapFactory.decodeStream(inputStream);
+				// url = URLEncoder.encode(url, "UTF-8");
+				if (map != null) {
+					saveBmpToSd(map, LOCALURL, quantity);
+				}
+				inputStream.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return map;
+	}
+
+	/***
+	 * 判断图片是存在
+	 * 
+	 * @param url
+	 * @return
+	 */
+	public static boolean Exist(String url) {
+		File file = new File(DIR + url);
+		return file.exists();
+	}
+
+	/** * 计算sdcard上的剩余空间 * @return */
+	private static int freeSpaceOnSd() {
+		StatFs stat = new StatFs(Environment.getExternalStorageDirectory()
+				.getPath());
+		double sdFreeMB = ((double) stat.getAvailableBlocks() * (double) stat
+				.getBlockSize()) / MB;
+
+		return (int) sdFreeMB;
+	}
+
+}

@@ -7,390 +7,462 @@ import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.FloatMath;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
 
-public class DragImageView
-  extends ImageView
-{
-  private int MAX_H;
-  private int MAX_W;
-  private int MIN_H;
-  private int MIN_W;
-  private float afterLenght;
-  private float beforeLenght;
-  private int bitmap_H;
-  private int bitmap_W;
-  private int current_Bottom;
-  private int current_Left;
-  private int current_Right;
-  private int current_Top;
-  private int current_x;
-  private int current_y;
-  private boolean isControl_H = false;
-  private boolean isControl_V = false;
-  private boolean isScaleAnim = false;
-  private Activity mActivity;
-  private MODE mode = MODE.NONE;
-  private MyAsyncTask myAsyncTask;
-  private ScaleAnimation scaleAnimation;
-  private float scale_temp;
-  private int screen_H;
-  private int screen_W;
-  private int start_Bottom = -1;
-  private int start_Left = -1;
-  private int start_Right = -1;
-  private int start_Top = -1;
-  private int start_x;
-  private int start_y;
-  
-  public DragImageView(Context paramContext)
-  {
-    super(paramContext);
-  }
-  
-  public DragImageView(Context paramContext, AttributeSet paramAttributeSet)
-  {
-    super(paramContext, paramAttributeSet);
-  }
-  
-  private void setPosition(int paramInt1, int paramInt2, int paramInt3, int paramInt4)
-  {
-    layout(paramInt1, paramInt2, paramInt3, paramInt4);
-  }
-  
-  public void doScaleAnim()
-  {
-    this.myAsyncTask = new MyAsyncTask(this.screen_W, getWidth(), getHeight());
-    this.myAsyncTask.setLTRB(getLeft(), getTop(), getRight(), getBottom());
-    this.myAsyncTask.execute(new Void[0]);
-    this.isScaleAnim = false;
-  }
-  
-  float getDistance(MotionEvent paramMotionEvent)
-  {
-    float f1 = paramMotionEvent.getX(0) - paramMotionEvent.getX(1);
-    float f2 = paramMotionEvent.getY(0) - paramMotionEvent.getY(1);
-    return FloatMath.sqrt(f1 * f1 + f2 * f2);
-  }
-  
-  protected void onLayout(boolean paramBoolean, int paramInt1, int paramInt2, int paramInt3, int paramInt4)
-  {
-    super.onLayout(paramBoolean, paramInt1, paramInt2, paramInt3, paramInt4);
-    if (this.start_Top == -1)
-    {
-      this.start_Top = paramInt2;
-      this.start_Left = paramInt1;
-      this.start_Bottom = paramInt4;
-      this.start_Right = paramInt3;
-    }
-  }
-  
-  void onPointerDown(MotionEvent paramMotionEvent)
-  {
-    if (paramMotionEvent.getPointerCount() == 2)
-    {
-      this.mode = MODE.ZOOM;
-      this.beforeLenght = getDistance(paramMotionEvent);
-    }
-  }
-  
-  void onTouchDown(MotionEvent paramMotionEvent)
-  {
-    this.mode = MODE.DRAG;
-    this.current_x = ((int)paramMotionEvent.getRawX());
-    this.current_y = ((int)paramMotionEvent.getRawY());
-    this.start_x = ((int)paramMotionEvent.getX());
-    this.start_y = (this.current_y - getTop());
-  }
-  
-  public boolean onTouchEvent(MotionEvent paramMotionEvent)
-  {
-    switch (0xFF & paramMotionEvent.getAction())
-    {
-    }
-    for (;;)
-    {
-      return true;
-      onTouchDown(paramMotionEvent);
-      continue;
-      onPointerDown(paramMotionEvent);
-      continue;
-      onTouchMove(paramMotionEvent);
-      continue;
-      this.mode = MODE.NONE;
-      continue;
-      this.mode = MODE.NONE;
-      if (this.isScaleAnim) {
-        doScaleAnim();
-      }
-    }
-  }
-  
-  void onTouchMove(MotionEvent paramMotionEvent)
-  {
-    int i;
-    int j;
-    int k;
-    int m;
-    if (this.mode == MODE.DRAG)
-    {
-      i = this.current_x - this.start_x;
-      j = this.current_x + getWidth() - this.start_x;
-      k = this.current_y - this.start_y;
-      m = this.current_y - this.start_y + getHeight();
-      if (this.isControl_H)
-      {
-        if (i >= 0)
-        {
-          i = 0;
-          j = getWidth();
-        }
-        if (j <= this.screen_W)
-        {
-          i = this.screen_W - getWidth();
-          j = this.screen_W;
-        }
-        if (!this.isControl_V) {
-          break label206;
-        }
-        if (k >= 0)
-        {
-          k = 0;
-          m = getHeight();
-        }
-        if (m <= this.screen_H)
-        {
-          k = this.screen_H - getHeight();
-          m = this.screen_H;
-        }
-        label150:
-        if ((this.isControl_H) || (this.isControl_V)) {
-          setPosition(i, k, j, m);
-        }
-        this.current_x = ((int)paramMotionEvent.getRawX());
-        this.current_y = ((int)paramMotionEvent.getRawY());
-      }
-    }
-    label206:
-    do
-    {
-      do
-      {
-        return;
-        i = getLeft();
-        j = getRight();
-        break;
-        k = getTop();
-        m = getBottom();
-        break label150;
-      } while (this.mode != MODE.ZOOM);
-      this.afterLenght = getDistance(paramMotionEvent);
-    } while (Math.abs(this.afterLenght - this.beforeLenght) <= 5.0F);
-    this.scale_temp = (this.afterLenght / this.beforeLenght);
-    setScale(this.scale_temp);
-    this.beforeLenght = this.afterLenght;
-  }
-  
-  public void setImageBitmap(Bitmap paramBitmap)
-  {
-    super.setImageBitmap(paramBitmap);
-    this.bitmap_W = paramBitmap.getWidth();
-    this.bitmap_H = paramBitmap.getHeight();
-    this.MAX_W = (5 * this.bitmap_W);
-    this.MAX_H = (5 * this.bitmap_H);
-    this.MIN_W = (2 * (this.bitmap_W / 7));
-    this.MIN_H = (2 * (this.bitmap_H / 7));
-  }
-  
-  void setScale(float paramFloat)
-  {
-    int i = 5 * (int)(getWidth() * Math.abs(1.0F - paramFloat)) / 2;
-    int j = 3 * (int)(getHeight() * Math.abs(1.0F - paramFloat)) / 2;
-    if ((paramFloat > 1.0F) && (getWidth() <= this.MAX_W))
-    {
-      this.current_Left = (getLeft() - i);
-      this.current_Top = (getTop() - j);
-      this.current_Right = (i + getRight());
-      this.current_Bottom = (j + getBottom());
-      setFrame(this.current_Left, this.current_Top, this.current_Right, this.current_Bottom);
-      if ((this.current_Top <= 0) && (this.current_Bottom >= this.screen_H))
-      {
-        this.isControl_V = true;
-        if ((this.current_Left > 0) || (this.current_Right < this.screen_W)) {
-          break label169;
-        }
-        this.isControl_H = true;
-      }
-    }
-    label169:
-    while ((paramFloat >= 1.0F) || (getWidth() < this.MIN_W))
-    {
-      for (;;)
-      {
-        return;
-        this.isControl_V = false;
-      }
-      this.isControl_H = false;
-      return;
-    }
-    this.current_Left = (i + getLeft());
-    this.current_Top = (j + getTop());
-    this.current_Right = (getRight() - i);
-    this.current_Bottom = (getBottom() - j);
-    if ((this.isControl_V) && (this.current_Top > 0))
-    {
-      this.current_Top = 0;
-      this.current_Bottom = (getBottom() - j * 2);
-      if (this.current_Bottom < this.screen_H)
-      {
-        this.current_Bottom = this.screen_H;
-        this.isControl_V = false;
-      }
-    }
-    if ((this.isControl_V) && (this.current_Bottom < this.screen_H))
-    {
-      this.current_Bottom = this.screen_H;
-      this.current_Top = (getTop() + j * 2);
-      if (this.current_Top > 0)
-      {
-        this.current_Top = 0;
-        this.isControl_V = false;
-      }
-    }
-    if ((this.isControl_H) && (this.current_Left >= 0))
-    {
-      this.current_Left = 0;
-      this.current_Right = (getRight() - i * 2);
-      if (this.current_Right <= this.screen_W)
-      {
-        this.current_Right = this.screen_W;
-        this.isControl_H = false;
-      }
-    }
-    if ((this.isControl_H) && (this.current_Right <= this.screen_W))
-    {
-      this.current_Right = this.screen_W;
-      this.current_Left = (getLeft() + i * 2);
-      if (this.current_Left >= 0)
-      {
-        this.current_Left = 0;
-        this.isControl_H = false;
-      }
-    }
-    if ((this.isControl_H) || (this.isControl_V))
-    {
-      setFrame(this.current_Left, this.current_Top, this.current_Right, this.current_Bottom);
-      return;
-    }
-    setFrame(this.current_Left, this.current_Top, this.current_Right, this.current_Bottom);
-    this.isScaleAnim = true;
-  }
-  
-  public void setScreen_H(int paramInt)
-  {
-    this.screen_H = paramInt;
-  }
-  
-  public void setScreen_W(int paramInt)
-  {
-    this.screen_W = paramInt;
-  }
-  
-  public void setmActivity(Activity paramActivity)
-  {
-    this.mActivity = paramActivity;
-  }
-  
-  private static enum MODE
-  {
-    ZOOM,  DRAG,  NONE;
-  }
-  
-  class MyAsyncTask
-    extends AsyncTask<Void, Integer, Void>
-  {
-    private float STEP = 8.0F;
-    private int bottom;
-    private int current_Height;
-    private int current_Width;
-    private int left;
-    private int right;
-    private float scale_WH;
-    private int screen_W;
-    private float step_H;
-    private float step_V;
-    private int top;
-    
-    public MyAsyncTask(int paramInt1, int paramInt2, int paramInt3)
-    {
-      this.screen_W = paramInt1;
-      this.current_Width = paramInt2;
-      this.current_Height = paramInt3;
-      this.scale_WH = (paramInt3 / paramInt2);
-      this.step_H = this.STEP;
-      this.step_V = (this.scale_WH * this.STEP);
-    }
-    
-    protected Void doInBackground(Void... paramVarArgs)
-    {
-      for (;;)
-      {
-        if (this.current_Width > this.screen_W) {
-          return null;
-        }
-        this.left = ((int)(this.left - this.step_H));
-        this.top = ((int)(this.top - this.step_V));
-        this.right = ((int)(this.right + this.step_H));
-        this.bottom = ((int)(this.bottom + this.step_V));
-        this.current_Width = ((int)(this.current_Width + 2.0F * this.step_H));
-        this.left = Math.max(this.left, DragImageView.this.start_Left);
-        this.top = Math.max(this.top, DragImageView.this.start_Top);
-        this.right = Math.min(this.right, DragImageView.this.start_Right);
-        this.bottom = Math.min(this.bottom, DragImageView.this.start_Bottom);
-        Log.e("jj", "top=" + this.top + ",bottom=" + this.bottom + ",left=" + this.left + ",right=" + this.right);
-        Integer[] arrayOfInteger = new Integer[4];
-        arrayOfInteger[0] = Integer.valueOf(this.left);
-        arrayOfInteger[1] = Integer.valueOf(this.top);
-        arrayOfInteger[2] = Integer.valueOf(this.right);
-        arrayOfInteger[3] = Integer.valueOf(this.bottom);
-        onProgressUpdate(arrayOfInteger);
-        try
-        {
-          Thread.sleep(10L);
-        }
-        catch (InterruptedException localInterruptedException)
-        {
-          localInterruptedException.printStackTrace();
-        }
-      }
-    }
-    
-    protected void onProgressUpdate(final Integer... paramVarArgs)
-    {
-      super.onProgressUpdate(paramVarArgs);
-      DragImageView.this.mActivity.runOnUiThread(new Runnable()
-      {
-        public void run()
-        {
-          DragImageView.this.setFrame(paramVarArgs[0].intValue(), paramVarArgs[1].intValue(), paramVarArgs[2].intValue(), paramVarArgs[3].intValue());
-        }
-      });
-    }
-    
-    public void setLTRB(int paramInt1, int paramInt2, int paramInt3, int paramInt4)
-    {
-      this.left = paramInt1;
-      this.top = paramInt2;
-      this.right = paramInt3;
-      this.bottom = paramInt4;
-    }
-  }
-}
-
-
-/* Location:           C:\Users\Rodelle\Desktop\Attacknid\Tools\Attacknids-dex2jar.jar
- * Qualified Name:     com.SixClawWorm.utils.DragImageView
- * JD-Core Version:    0.7.0.1
+/****
+ * 这里你要明白几个方法执行的流程： 首先ImageView是继承自View的子类.
+ * onLayout方法：是一个回调方法.该方法会在在View中的layout方法中执行，在执行layout方法前面会首先执行setFrame方法.
+ * layout方法：
+ * setFrame方法：判断我们的View是否发生变化，如果发生变化，那么将最新的l，t，r，b传递给View，然后刷新进行动态更新UI.
+ * 并且返回ture.没有变化返回false.
+ * 
+ * invalidate方法：用于刷新当前控件,
+ * 
+ * 
+ * 
  */
+public class DragImageView extends ImageView {
+
+	private Activity mActivity;
+
+	private int screen_W, screen_H;// 可见屏幕的宽高度
+
+	private int bitmap_W, bitmap_H;// 当前图片宽高
+
+	private int MAX_W, MAX_H, MIN_W, MIN_H;// 极限值
+
+	private int current_Top, current_Right, current_Bottom, current_Left;// 当前图片上下左右坐标
+
+	private int start_Top = -1, start_Right = -1, start_Bottom = -1,
+			start_Left = -1;// 初始化默认位置.
+
+	private int start_x, start_y, current_x, current_y;// 触摸位置
+
+	private float beforeLenght, afterLenght;// 两触点距离
+
+	private float scale_temp;// 缩放比例
+
+	/**
+	 * 模式 NONE：无 DRAG：拖拽. ZOOM:缩放
+	 * 
+	 * @author zhangjia
+	 * 
+	 */
+	public enum MODE {
+		NONE, DRAG, ZOOM
+
+	};
+
+	public MODE mode = MODE.NONE;// 默认模式
+
+	private boolean isControl_V = false;// 垂直监控
+
+	private boolean isControl_H = false;// 水平监控
+
+	private ScaleAnimation scaleAnimation;// 缩放动画
+
+	public boolean isScaleAnim = false;// 缩放动画
+
+	private MyAsyncTask myAsyncTask;// 异步动画
+
+	private boolean isOnClick;
+	private OnClickCallback onClickCallBack;
+
+	/** 构造方法 **/
+	public DragImageView(Context context) {
+		super(context);
+	}
+
+	public void setmActivity(Activity mActivity) {
+		this.mActivity = mActivity;
+	}
+
+	/** 可见屏幕宽度 **/
+	public void setScreen_W(int screen_W) {
+		this.screen_W = screen_W;
+	}
+
+	/** 可见屏幕高度 **/
+	public void setScreen_H(int screen_H) {
+		this.screen_H = screen_H;
+	}
+
+	public OnClickCallback getOnClickCallBack() {
+		return onClickCallBack;
+	}
+
+	public void setOnClickCallBack(OnClickCallback onClickCallBack) {
+		this.onClickCallBack = onClickCallBack;
+	}
+
+	public DragImageView(Context context, AttributeSet attrs) {
+		super(context, attrs);
+	}
+
+	/***
+	 * 设置显示图片
+	 */
+	@Override
+	public void setImageBitmap(Bitmap bm) {
+		super.setImageBitmap(bm);
+		/** 获取图片宽高 **/
+		bitmap_W = bm.getWidth();
+		bitmap_H = bm.getHeight();
+
+		MAX_W = bitmap_W * 3;
+		MAX_H = bitmap_H * 3;
+
+		MIN_W = bitmap_W / 2;
+		MIN_H = bitmap_H / 2;
+
+	}
+
+	@Override
+	protected void onLayout(boolean changed, int left, int top, int right,
+			int bottom) {
+		super.onLayout(changed, left, top, right, bottom);
+		if (start_Top == -1) {
+			start_Top = top;
+			start_Left = left;
+			start_Bottom = bottom;
+			start_Right = right;
+		}
+
+	}
+
+	/***
+	 * touch 事件
+	 */
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		/** 处理单点、多点触摸 **/
+		switch (event.getAction() & MotionEvent.ACTION_MASK) {
+		case MotionEvent.ACTION_DOWN:
+			isOnClick = true;
+			onTouchDown(event);
+			break;
+		// 多点触摸
+		case MotionEvent.ACTION_POINTER_DOWN:
+			isOnClick = false;
+			onPointerDown(event);
+			break;
+
+		case MotionEvent.ACTION_MOVE:
+			isOnClick = false;
+			onTouchMove(event);
+			break;
+		case MotionEvent.ACTION_UP:
+			mode = MODE.NONE;
+			if (isOnClick) {
+				if (onClickCallBack != null) {
+					onClickCallBack.callback();
+				}
+			}
+			break;
+
+		// 多点松开
+		case MotionEvent.ACTION_POINTER_UP:
+			mode = MODE.NONE;
+			/** 执行缩放还原 **/
+			if (isScaleAnim) {
+				doScaleAnim();
+			}
+			break;
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			onClickCallBack.callback();
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	/** 按下 **/
+	public void onTouchDown(MotionEvent event) {
+		mode = MODE.DRAG;
+
+		current_x = (int) event.getRawX();
+		current_y = (int) event.getRawY();
+
+		start_x = (int) event.getX();
+		start_y = current_y - this.getTop();
+
+	}
+
+	/** 两个手指 只能放大缩小 **/
+	public void onPointerDown(MotionEvent event) {
+		if (event.getPointerCount() == 2) {
+			mode = MODE.ZOOM;
+			beforeLenght = getDistance(event);// 获取两点的距离
+		}
+	}
+
+	/** 移动的处理 **/
+	public void onTouchMove(MotionEvent event) {
+		int left = 0, top = 0, right = 0, bottom = 0;
+		/** 处理拖动 **/
+		if (mode == MODE.DRAG) {
+
+			/** 在这里要进行判断处理，防止在drag时候越界 **/
+
+			/** 获取相应的l，t,r ,b **/
+			left = current_x - start_x;
+			right = current_x + this.getWidth() - start_x;
+			top = current_y - start_y;
+			bottom = current_y - start_y + this.getHeight();
+
+			/** 水平进行判断 **/
+			if (isControl_H) {
+				if (left >= 0) {
+					left = 0;
+					right = this.getWidth();
+				}
+				if (right <= screen_W) {
+					left = screen_W - this.getWidth();
+					right = screen_W;
+				}
+			} else {
+				left = this.getLeft();
+				right = this.getRight();
+			}
+			/** 垂直判断 **/
+			if (isControl_V) {
+				if (top >= 0) {
+					top = 0;
+					bottom = this.getHeight();
+				}
+
+				if (bottom <= screen_H) {
+					top = screen_H - this.getHeight();
+					bottom = screen_H;
+				}
+			} else {
+				top = this.getTop();
+				bottom = this.getBottom();
+			}
+			if (isControl_H || isControl_V)
+				this.setPosition(left, top, right, bottom);
+
+			current_x = (int) event.getRawX();
+			current_y = (int) event.getRawY();
+
+		}
+		/** 处理缩放 **/
+		else if (mode == MODE.ZOOM) {
+
+			afterLenght = getDistance(event);// 获取两点的距离
+
+			float gapLenght = afterLenght - beforeLenght;// 变化的长度
+
+			if (Math.abs(gapLenght) > 5f) {
+				scale_temp = afterLenght / beforeLenght;// 求的缩放的比例
+
+				this.setScale(scale_temp);
+
+				beforeLenght = afterLenght;
+			}
+		}
+
+	}
+
+	/** 获取两点的距离 **/
+	float getDistance(MotionEvent event) {
+		float x = event.getX(0) - event.getX(1);
+		float y = event.getY(0) - event.getY(1);
+
+		return FloatMath.sqrt(x * x + y * y);
+	}
+
+	/** 实现处理拖动 **/
+	private void setPosition(int left, int top, int right, int bottom) {
+		this.layout(left, top, right, bottom);
+	}
+
+	/** 处理缩放 **/
+	void setScale(float scale) {
+		int disX = (int) (this.getWidth() * Math.abs(1 - scale)) / 4;// 获取缩放水平距离
+		int disY = (int) (this.getHeight() * Math.abs(1 - scale)) / 4;// 获取缩放垂直距离
+
+		// 放大
+		if (scale > 1 && this.getWidth() <= MAX_W) {
+			current_Left = this.getLeft() - disX;
+			current_Top = this.getTop() - disY;
+			current_Right = this.getRight() + disX;
+			current_Bottom = this.getBottom() + disY;
+
+			this.setFrame(current_Left, current_Top, current_Right,
+					current_Bottom);
+			/***
+			 * 此时因为考虑到对称，所以只做一遍判断就可以了。
+			 */
+			if (current_Top <= 0 && current_Bottom >= screen_H) {
+				// Log.e("jj", "屏幕高度=" + this.getHeight());
+				isControl_V = true;// 开启垂直监控
+			} else {
+				isControl_V = false;
+			}
+			if (current_Left <= 0 && current_Right >= screen_W) {
+				isControl_H = true;// 开启水平监控
+			} else {
+				isControl_H = false;
+			}
+
+		}
+		// 缩小
+		else if (scale < 1 && this.getWidth() >= MIN_W) {
+			current_Left = this.getLeft() + disX;
+			current_Top = this.getTop() + disY;
+			current_Right = this.getRight() - disX;
+			current_Bottom = this.getBottom() - disY;
+			/***
+			 * 在这里要进行缩放处理
+			 */
+			// 上边越界
+			if (isControl_V && current_Top > 0) {
+				current_Top = 0;
+				current_Bottom = this.getBottom() - 2 * disY;
+				if (current_Bottom < screen_H) {
+					current_Bottom = screen_H;
+					isControl_V = false;// 关闭垂直监听
+				}
+			}
+			// 下边越界
+			if (isControl_V && current_Bottom < screen_H) {
+				current_Bottom = screen_H;
+				current_Top = this.getTop() + 2 * disY;
+				if (current_Top > 0) {
+					current_Top = 0;
+					isControl_V = false;// 关闭垂直监听
+				}
+			}
+
+			// 左边越界
+			if (isControl_H && current_Left >= 0) {
+				current_Left = 0;
+				current_Right = this.getRight() - 2 * disX;
+				if (current_Right <= screen_W) {
+					current_Right = screen_W;
+					isControl_H = false;// 关闭
+				}
+			}
+			// 右边越界
+			if (isControl_H && current_Right <= screen_W) {
+				current_Right = screen_W;
+				current_Left = this.getLeft() + 2 * disX;
+				if (current_Left >= 0) {
+					current_Left = 0;
+					isControl_H = false;// 关闭
+				}
+			}
+
+			if (isControl_H || isControl_V) {
+				this.setFrame(current_Left, current_Top, current_Right,
+						current_Bottom);
+			} else {
+				this.setFrame(current_Left, current_Top, current_Right,
+						current_Bottom);
+				isScaleAnim = true;// 开启缩放动画
+			}
+
+		}
+
+	}
+
+	/***
+	 * 缩放动画处理
+	 */
+	public void doScaleAnim() {
+		myAsyncTask = new MyAsyncTask(screen_W, this.getWidth(),
+				this.getHeight());
+		myAsyncTask.setLTRB(this.getLeft(), this.getTop(), this.getRight(),
+				this.getBottom());
+		myAsyncTask.execute();
+		isScaleAnim = false;// 关闭动画
+	}
+
+	/***
+	 * 回缩动画執行
+	 */
+	class MyAsyncTask extends AsyncTask<Void, Integer, Void> {
+		private int screen_W, current_Width, current_Height;
+
+		private int left, top, right, bottom;
+
+		private float scale_WH;// 宽高的比例
+
+		/** 当前的位置属性 **/
+		public void setLTRB(int left, int top, int right, int bottom) {
+			this.left = left;
+			this.top = top;
+			this.right = right;
+			this.bottom = bottom;
+		}
+
+		private float STEP = 8f;// 步伐
+
+		private float step_H, step_V;// 水平步伐，垂直步伐
+
+		public MyAsyncTask(int screen_W, int current_Width, int current_Height) {
+			super();
+			this.screen_W = screen_W;
+			this.current_Width = current_Width;
+			this.current_Height = current_Height;
+			scale_WH = (float) current_Height / current_Width;
+			step_H = STEP;
+			step_V = scale_WH * STEP;
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+
+			while (current_Width <= bitmap_W) {
+
+				left -= step_H;
+				top -= step_V;
+				right += step_H;
+				bottom += step_V;
+
+				current_Width += 2 * step_H;
+
+				left = Math.max(left, start_Left);
+				top = Math.max(top, start_Top);
+				right = Math.min(right, start_Right);
+				bottom = Math.min(bottom, start_Bottom);
+				Log.e("jj", "top=" + top + ",bottom=" + bottom + ",left="
+						+ left + ",right=" + right);
+				onProgressUpdate(new Integer[] { left, top, right, bottom });
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		protected void onProgressUpdate(final Integer... values) {
+			super.onProgressUpdate(values);
+			mActivity.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					setFrame(values[0], values[1], values[2], values[3]);
+				}
+			});
+
+		}
+
+	}
+
+	public interface OnClickCallback {
+		public void callback();
+	}
+}
