@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="about_logoBtn">false</item>
+    <item type="id" name="Mlayer">false</item>
+    <item type="id" name="backBtn">false</item>
+    <item type="id" name="wow_Btn">false</item>
+    <item type="id" name="facebook_Btn">false</item>
+    <item type="id" name="Twitter_Btn">false</item>
+    <item type="id" name="Myt_Btn">false</item>
+    <item type="id" name="StartBtn">false</item>
+    <item type="id" name="title_left_text">false</item>
+    <item type="id" name="title_right_text">false</item>
+    <item type="id" name="title_paired_devices">false</item>
+    <item type="id" name="paired_devices">false</item>
+    <item type="id" name="title_new_devices">false</item>
+    <item type="id" name="new_devices">false</item>
+    <item type="id" name="button_scan">false</item>
+    <item type="id" name="div_main">false</item>
+    <item type="id" name="in">false</item>
+    <item type="id" name="button_send">false</item>
+    <item type="id" name="playBtn">false</item>
+    <item type="id" name="introdutionBtn">false</item>
+    <item type="id" name="aboutBtn">false</item>
+    <item type="id" name="okBtn">false</item>
+    <item type="id" name="helpBtn">false</item>
+    <item type="id" name="webview">false</item>
+    <item type="id" name="insecure_connect_scan">false</item>
+    <item type="id" name="discoverable">false</item>
+</resources>

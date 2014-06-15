@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@drawable/mainbackground" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <Button android:id="@id/StartBtn" android:background="@drawable/startbutton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="50.0dip" android:layout_marginBottom="50.0dip" android:layout_alignParentBottom="true" />
+        <Button android:id="@id/Mlayer" android:background="@drawable/mlayer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:layout_alignParentRight="true" android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+</LinearLayout>

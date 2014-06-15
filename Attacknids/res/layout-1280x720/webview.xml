@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@drawable/introdution_mainbg" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <RelativeLayout android:background="@drawable/introdution_txtbg" android:layout_width="600.0dip" android:layout_height="350.0dip" android:layout_marginTop="10.0dip" android:layout_centerHorizontal="true" android:layout_centerVertical="true">
+            <WebView android:id="@id/webview" android:layout_width="520.0dip" android:layout_height="250.0dip" android:layout_marginLeft="15.0dip" android:layout_marginTop="75.0dip" />
+            <Button android:id="@id/backBtn" android:background="@drawable/mbackbtn" android:layout_width="70.0dip" android:layout_height="70.0dip" android:layout_marginTop="6.0dip" />
+            <RelativeLayout android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </RelativeLayout>
+    </RelativeLayout>
+</LinearLayout>

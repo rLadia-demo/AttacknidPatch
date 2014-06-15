@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@drawable/introdution_mainbg" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <RelativeLayout android:background="@drawable/introdution_txtbg1920" android:layout_width="1000.0dip" android:layout_height="900.0dip" android:layout_marginTop="10.0dip" android:layout_centerHorizontal="true" android:layout_centerVertical="true">
+            <Button android:id="@id/backBtn" android:background="@drawable/mbackbtn" android:layout_width="80.0dip" android:layout_height="80.0dip" />
+            <ScrollView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="15.0dip" android:layout_marginTop="70.0dip" android:layout_marginRight="70.0dip" android:layout_marginBottom="30.0dip">
+                <HorizontalScrollView android:layout_width="wrap_content" android:layout_height="wrap_content">
+                    <RelativeLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+                        <com.SixClawWorm.utils.DragImageView android:id="@id/div_main" android:layout_width="wrap_content" android:layout_height="wrap_content" android:scaleType="fitXY" />
+                    </RelativeLayout>
+                </HorizontalScrollView>
+            </ScrollView>
+        </RelativeLayout>
+    </RelativeLayout>
+</LinearLayout>

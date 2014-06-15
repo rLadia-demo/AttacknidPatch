@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@drawable/menu_mainbackground" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <Button android:id="@id/Mlayer" android:background="@drawable/mlayer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:layout_alignParentRight="true" android:layout_alignParentBottom="true" />
+        <Button android:id="@id/backBtn" android:background="@drawable/mbackbtn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="15.0dip" android:layout_marginTop="15.0dip" />
+        <RelativeLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="wrap_content">
+            <RelativeLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="30.0dip" android:layout_centerHorizontal="true">
+                <Button android:id="@id/playBtn" android:background="@drawable/mplay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20.0dip" />
+                <Button android:id="@id/introdutionBtn" android:background="@drawable/mintrodution" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="90.0dip" />
+                <Button android:id="@id/aboutBtn" android:background="@drawable/mabout" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="160.0dip" />
+            </RelativeLayout>
+        </RelativeLayout>
+    </RelativeLayout>
+</LinearLayout>

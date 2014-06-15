@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:background="@drawable/about_acreen" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <Button android:id="@id/about_logoBtn" android:background="@drawable/about_logo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="50.0dip" android:layout_alignParentRight="true" />
+        <Button android:id="@id/Mlayer" android:background="@drawable/mlayer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:layout_marginBottom="2.0dip" android:layout_alignParentRight="true" android:layout_alignParentBottom="true" />
+        <RelativeLayout android:background="@drawable/maboutbackbtn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="5.0dip" android:layout_marginTop="10.0dip">
+            <Button android:id="@id/backBtn" android:background="@drawable/mbackbtn" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </RelativeLayout>
+        <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerHorizontal="true" android:layout_centerVertical="true">
+            <Button android:id="@id/wow_Btn" android:background="@drawable/wow_button" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <Button android:id="@id/facebook_Btn" android:background="@drawable/mfacebook" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <Button android:id="@id/Twitter_Btn" android:background="@drawable/mtwitter_button" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <Button android:id="@id/Myt_Btn" android:background="@drawable/myt_button" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>
