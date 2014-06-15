@@ -1,139 +1,99 @@
 package com.SixClawWorm.application;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
-import android.graphics.BitmapFactory;
-import android.graphics.BitmapFactory.Options;
-import android.os.Bundle;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver;
-import android.view.Window;
-import android.webkit.WebSettings;
-import android.webkit.WebSettings.LayoutAlgorithm;
-import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.ZoomButtonsController;
-import com.SixClawWorm.utils.DragImageView;
-import com.SixClawWorm.utils.ExitApplication;
-import com.SixClawWorm.utils.PlatformScreen;
-import java.lang.reflect.Field;
+import android.app.*;
+import android.graphics.*;
+import android.os.*;
+import android.webkit.*;
+import com.SixClawWorm.utils.*;
+import android.content.*;
+import android.view.*;
+import android.widget.*;
+import java.lang.reflect.*;
 
-public class inTrodutionActivity
-  extends Activity
+public class inTrodutionActivity extends Activity
 {
-  private Button backBtn;
-  Bitmap bmp = null;
-  private DragImageView dragImageView;
-  private int state_height;
-  private ViewTreeObserver viewTreeObserver;
-  private WebView webview;
-  private int window_height;
-  private int window_width;
-  
-  public Bitmap ReadBitmapById(Context paramContext, int paramInt)
-  {
-    BitmapFactory.Options localOptions = new BitmapFactory.Options();
-    localOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-    localOptions.inPurgeable = true;
-    localOptions.inInputShareable = true;
-    localOptions.inSampleSize = 2;
-    return BitmapFactory.decodeStream(paramContext.getResources().openRawResource(paramInt), null, localOptions);
-  }
-  
-  protected void onCreate(Bundle paramBundle)
-  {
-    super.onCreate(paramBundle);
-    requestWindowFeature(1);
-    getWindow().setFlags(1024, 1024);
-    setContentView(2130903050);
-    PlatformScreen.GetWidth(this);
-    PlatformScreen.GetHeight(this);
-    this.webview = ((WebView)findViewById(2131099671));
-    this.webview.getSettings().setUseWideViewPort(true);
-    this.webview.getSettings().setBuiltInZoomControls(true);
-    setZoomControlGone(this.webview);
-    this.webview.getSettings().setSupportZoom(true);
-    this.webview.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
-    this.webview.setInitialScale(1);
-    this.webview.getSettings().setDisplayZoomControls(false);
-    this.webview.loadUrl("file:///android_asset/gfx/introtionalpic1280.jpg");
-    ExitApplication.getInstance().addActivity(this);
-    this.backBtn = ((Button)findViewById(2131099650));
-    this.backBtn.setOnClickListener(new View.OnClickListener()
-    {
-      public void onClick(View paramAnonymousView)
-      {
-        Intent localIntent = new Intent(inTrodutionActivity.this, MenuActivity.class);
-        inTrodutionActivity.this.startActivity(localIntent);
-      }
-    });
-  }
-  
-  public boolean onKeyDown(int paramInt, KeyEvent paramKeyEvent)
-  {
-    if (paramInt == 4) {
-      finish();
+    private Button backBtn;
+    Bitmap bmp;
+    private DragImageView dragImageView;
+    private int state_height;
+    private ViewTreeObserver viewTreeObserver;
+    private WebView webview;
+    private int window_height;
+    private int window_width;
+    
+    public inTrodutionActivity() {
+        super();
+        this.bmp = null;
     }
-    return super.onKeyDown(paramInt, paramKeyEvent);
-  }
-  
-  protected void onStop()
-  {
-    if ((this.bmp != null) && (!this.bmp.isRecycled()))
-    {
-      this.bmp.recycle();
-      System.gc();
-      this.bmp = null;
+    
+    public Bitmap ReadBitmapById(final Context context, final int n) {
+        final BitmapFactory.Options bitmapFactory = new BitmapFactory.Options();
+        bitmapFactory.inPreferredConfig = Bitmap.Config.RGB_565;
+        bitmapFactory.inPurgeable = true;
+        bitmapFactory.inInputShareable = true;
+        bitmapFactory.inSampleSize = 2;
+        return BitmapFactory.decodeStream(context.getResources().openRawResource(n), (Rect)null, bitmapFactory);
     }
-    super.onStop();
-  }
-  
-  public void setZoomControlGone(View paramView)
-  {
-    try
-    {
-      Field localField = WebView.class.getDeclaredField("mZoomButtonsController");
-      localField.setAccessible(true);
-      ZoomButtonsController localZoomButtonsController = new ZoomButtonsController(paramView);
-      localZoomButtonsController.getZoomControls().setVisibility(8);
-      return;
+    
+    protected void onCreate(final Bundle bundle) {
+        super.onCreate(bundle);
+        this.requestWindowFeature(1);
+        this.getWindow().setFlags(1024, 1024);
+        this.setContentView(2130903050);
+        PlatformScreen.GetWidth(this);
+        PlatformScreen.GetHeight(this);
+        this.webview = (WebView)this.findViewById(2131099671);
+        this.webview.getSettings().setUseWideViewPort(true);
+        this.webview.getSettings().setBuiltInZoomControls(true);
+        this.setZoomControlGone((View)this.webview);
+        this.webview.getSettings().setSupportZoom(true);
+        this.webview.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
+        this.webview.setInitialScale(1);
+        this.webview.getSettings().setDisplayZoomControls(false);
+        this.webview.loadUrl("file:///android_asset/gfx/introtionalpic1280.jpg");
+        ExitApplication.getInstance().addActivity(this);
+        (this.backBtn = (Button)this.findViewById(2131099650)).setOnClickListener((View.OnClickListener)new View.OnClickListener() {
+            public void onClick(final View view) {
+                inTrodutionActivity.this.startActivity(new Intent((Context)inTrodutionActivity.this, (Class)MenuActivity.class));
+            }
+        });
     }
-    catch (SecurityException localSecurityException)
-    {
-      try
-      {
-        localField.set(paramView, localZoomButtonsController);
-        return;
-      }
-      catch (IllegalArgumentException localIllegalArgumentException)
-      {
-        localIllegalArgumentException.printStackTrace();
-        return;
-        localSecurityException = localSecurityException;
-        localSecurityException.printStackTrace();
-        return;
-      }
-      catch (IllegalAccessException localIllegalAccessException)
-      {
-        localIllegalAccessException.printStackTrace();
-        return;
-      }
+    
+    public boolean onKeyDown(final int n, final KeyEvent keyEvent) {
+        if (n == 4) {
+            this.finish();
+        }
+        return super.onKeyDown(n, keyEvent);
     }
-    catch (NoSuchFieldException localNoSuchFieldException)
-    {
-      localNoSuchFieldException.printStackTrace();
+    
+    protected void onStop() {
+        if (this.bmp != null && !this.bmp.isRecycled()) {
+            this.bmp.recycle();
+            System.gc();
+            this.bmp = null;
+        }
+        super.onStop();
     }
-  }
+    
+    public void setZoomControlGone(final View view) {
+        try {
+            final Field declaredField = WebView.class.getDeclaredField("mZoomButtonsController");
+            declaredField.setAccessible(true);
+            final ZoomButtonsController zoomButtonsController = new ZoomButtonsController(view);
+            zoomButtonsController.getZoomControls().setVisibility(8);
+            try {
+                declaredField.set(view, zoomButtonsController);
+            }
+            catch (IllegalArgumentException ex) {
+                ex.printStackTrace();
+            }
+            catch (IllegalAccessException ex2) {
+                ex2.printStackTrace();
+            }
+        }
+        catch (SecurityException ex4) {}
+        catch (NoSuchFieldException ex3) {
+            ex3.printStackTrace();
+        }
+    }
 }
-
-
-/* Location:           C:\Users\Rodelle\Desktop\Attacknid\Tools\Attacknids-dex2jar.jar
- * Qualified Name:     com.SixClawWorm.application.inTrodutionActivity
- * JD-Core Version:    0.7.0.1
- */
