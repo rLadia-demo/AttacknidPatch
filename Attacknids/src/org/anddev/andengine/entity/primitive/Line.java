@@ -4,9 +4,10 @@ import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
 import org.anddev.andengine.collision.LineCollisionChecker;
+import org.anddev.andengine.collision.ShapeCollisionChecker;
 import org.anddev.andengine.engine.camera.Camera;
+import org.anddev.andengine.entity.shape.GLShape;
 import org.anddev.andengine.entity.shape.IShape;
-import org.anddev.andengine.entity.shape.Shape;
 import org.anddev.andengine.opengl.buffer.BufferObjectManager;
 import org.anddev.andengine.opengl.util.GLHelper;
 import org.anddev.andengine.opengl.vertex.LineVertexBuffer;
@@ -15,7 +16,7 @@ import org.anddev.andengine.opengl.vertex.LineVertexBuffer;
  * @author Nicolas Gramlich
  * @since 09:50:36 - 04.04.2010
  */
-public class Line extends Shape {
+public class Line extends GLShape {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -187,8 +188,7 @@ public class Line extends Shape {
 
 	@Override
 	public float[] getSceneCenterCoordinates() {
-		return null; // TODO 
-//		return convertLocalToSceneCoordinates(this, (this.mX + this.mX2) * 0.5f, (this.mY + this.mY2) * 0.5f);
+		return ShapeCollisionChecker.convertLocalToSceneCoordinates(this, (this.mX + this.mX2) * 0.5f, (this.mY + this.mY2) * 0.5f);
 	}
 
 	@Override

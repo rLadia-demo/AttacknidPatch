@@ -75,7 +75,7 @@ public class MenuScene extends CameraScene implements IOnAreaTouchListener, IOnS
 
 	public void addMenuItem(final IMenuItem pMenuItem) {
 		this.mMenuItems.add(pMenuItem);
-		this.getFirstChild().attachChild(pMenuItem);
+		this.getBottomLayer().addEntity(pMenuItem);
 		this.registerTouchArea(pMenuItem);
 	}
 

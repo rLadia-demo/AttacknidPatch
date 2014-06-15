@@ -1,5 +1,8 @@
 package org.anddev.andengine.entity.scene;
 
+import static org.anddev.andengine.util.constants.Constants.VERTEX_INDEX_X;
+import static org.anddev.andengine.util.constants.Constants.VERTEX_INDEX_Y;
+
 import java.util.ArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -9,15 +12,15 @@ import org.anddev.andengine.engine.handler.IUpdateHandler;
 import org.anddev.andengine.engine.handler.UpdateHandlerList;
 import org.anddev.andengine.engine.handler.runnable.RunnableHandler;
 import org.anddev.andengine.entity.Entity;
-import org.anddev.andengine.entity.IEntity;
-import org.anddev.andengine.entity.layer.Layer;
+import org.anddev.andengine.entity.layer.DynamicCapacityLayer;
+import org.anddev.andengine.entity.layer.FixedCapacityLayer;
+import org.anddev.andengine.entity.layer.ILayer;
 import org.anddev.andengine.entity.layer.ZIndexSorter;
 import org.anddev.andengine.entity.scene.background.ColorBackground;
 import org.anddev.andengine.entity.scene.background.IBackground;
 import org.anddev.andengine.entity.shape.Shape;
 import org.anddev.andengine.input.touch.TouchEvent;
 import org.anddev.andengine.opengl.util.GLHelper;
-import org.anddev.andengine.util.constants.Constants;
 
 import android.util.SparseArray;
 import android.view.MotionEvent;
@@ -43,6 +46,9 @@ public class Scene extends Entity {
 	private boolean mChildSceneModalUpdate;
 	private boolean mChildSceneModalTouch;
 
+	private final int mLayerCount;
+	private final ILayer[] mLayers;
+
 	private final ArrayList<ITouchArea> mTouchAreas = new ArrayList<ITouchArea>();
 
 	private final RunnableHandler mRunnableHandler = new RunnableHandler();
@@ -66,10 +72,18 @@ public class Scene extends Entity {
 	// ===========================================================
 
 	public Scene(final int pLayerCount) {
-		super(0, 0);
-		for(int i = pLayerCount - 1; i >= 0; i--) {
-			this.attachChild(new Layer());
+		this.mLayerCount = pLayerCount;
+		this.mLayers = new ILayer[pLayerCount];
+		this.createLayers();
+	}
+
+	public Scene(final int pLayerCount, final boolean pFixedCapacityLayers, final int ... pLayerCapacities) throws IllegalArgumentException {
+		if(pLayerCount != pLayerCapacities.length) {
+			throw new IllegalArgumentException("pLayerCount must be the same as the length of pLayerCapacities.");
 		}
+		this.mLayerCount = pLayerCount;
+		this.mLayers = new ILayer[pLayerCount];
+		this.createLayers(pFixedCapacityLayers, pLayerCapacities);
 	}
 
 	// ===========================================================
@@ -88,43 +102,52 @@ public class Scene extends Entity {
 		this.mBackground = pBackground;
 	}
 
-	/**
-	 * Instead use {@link Scene#getChild(int)}.
-	 */
-	@Deprecated
-	public Layer getLayer(final int pLayerIndex) throws ArrayIndexOutOfBoundsException {
-		return (Layer) this.getChild(pLayerIndex);
+	public ILayer getLayer(final int pLayerIndex) throws ArrayIndexOutOfBoundsException {
+		return this.mLayers[pLayerIndex];
 	}
 
-	/**
-	 * Instead use {@link Scene#getChildCount()}.
-	 */
-	@Deprecated
 	public int getLayerCount() {
-		return this.getChildCount();
+		return this.mLayers.length;
+	}
+
+	public ILayer getBottomLayer() {
+		return this.mLayers[0];
+	}
+
+	public ILayer getTopLayer() {
+		return this.mLayers[this.mLayerCount - 1];
+	}
+
+	public void setLayer(final int pLayerIndex, final ILayer pLayer) {
+		this.mLayers[pLayerIndex] = pLayer;
+	}
+
+	public void swapLayers(final int pLayerIndexA, final int pLayerIndexB) {
+		final ILayer[] layers = this.mLayers;
+		final ILayer tmp = layers[pLayerIndexA];
+		layers[pLayerIndexA] = layers[pLayerIndexB];
+		layers[pLayerIndexB] = tmp;
 	}
 
 	/**
-	 * Instead use {@link Scene#getFirstChild()}
+	 * Similar to {@link Scene#setLayer(int, ILayer)} but returns the {@link ILayer} that would be overwritten.
+	 * 
+	 * @param pLayerIndex
+	 * @param pLayer
+	 * @return the layer that has been replaced.
 	 */
-	@Deprecated
-	public Layer getBottomLayer() {
-		return (Layer) this.getFirstChild();
+	public ILayer replaceLayer(final int pLayerIndex, final ILayer pLayer) {
+		final ILayer[] layers = this.mLayers;
+		final ILayer oldLayer = layers[pLayerIndex];
+		layers[pLayerIndex] = pLayer;
+		return oldLayer;
 	}
 
 	/**
-	 * Instead use {@link Scene#getLastChild()}.
-	 */
-	@Deprecated
-	public Layer getTopLayer() {
-		return (Layer) this.getLastChild();
-	}
-
-	/**
-	 * Sorts the {@link Layer} based on their ZIndex. Sort is stable.
+	 * Sorts the {@link ILayer} based on their ZIndex. Sort is stable.
 	 */
 	public void sortLayers() {
-		ZIndexSorter.getInstance().sort(this.mChildren);
+		ZIndexSorter.getInstance().sort(this.mLayers);
 	}
 
 	public boolean isBackgroundEnabled() {
@@ -139,12 +162,10 @@ public class Scene extends Entity {
 		this.mTouchAreas.clear();
 	}
 
-	@Override
 	public void registerTouchArea(final ITouchArea pTouchArea) {
 		this.mTouchAreas.add(pTouchArea);
 	}
 
-	@Override
 	public void unregisterTouchArea(final ITouchArea pTouchArea) {
 		this.mTouchAreas.remove(pTouchArea);
 	}
@@ -254,7 +275,6 @@ public class Scene extends Entity {
 	@Override
 	protected void onManagedDraw(final GL10 pGL, final Camera pCamera) {
 		final Scene childScene = this.mChildScene;
-
 		if(childScene == null || !this.mChildSceneModalDraw) {
 			if(this.mBackgroundEnabled) {
 				pCamera.onApplyPositionIndependentMatrix(pGL);
@@ -266,9 +286,8 @@ public class Scene extends Entity {
 			pCamera.onApplyMatrix(pGL);
 			GLHelper.setModelViewIdentityMatrix(pGL);
 
-			super.onManagedDraw(pGL, pCamera);
+			this.drawLayers(pGL, pCamera);
 		}
-
 		if(childScene != null) {
 			childScene.onDraw(pGL, pCamera);
 		}
@@ -276,16 +295,15 @@ public class Scene extends Entity {
 
 	@Override
 	protected void onManagedUpdate(final float pSecondsElapsed) {
-		this.mSecondsElapsedTotal += pSecondsElapsed;
-
 		this.updateUpdateHandlers(pSecondsElapsed);
 
 		this.mRunnableHandler.onUpdate(pSecondsElapsed);
+		this.mSecondsElapsedTotal += pSecondsElapsed;
 
 		final Scene childScene = this.mChildScene;
 		if(childScene == null || !this.mChildSceneModalUpdate) {
 			this.mBackground.onUpdate(pSecondsElapsed);
-			super.onManagedUpdate(pSecondsElapsed);
+			this.updateLayers(pSecondsElapsed);
 		}
 
 		if(childScene != null) {
@@ -332,56 +350,56 @@ public class Scene extends Entity {
 		final float sceneTouchEventX = pSceneTouchEvent.getX();
 		final float sceneTouchEventY = pSceneTouchEvent.getY();
 
-		//		/* First give the layers a chance to handle their TouchAreas. */
-		//		{
-		//			final int layerCount = this.mLayerCount;
-		//			final Layer[] layers = this.mLayers;
-		//			if(this.mOnAreaTouchTraversalBackToFront) { /* Back to Front. */
-		//				for(int i = 0; i < layerCount; i++) {
-		//					final Layer layer = layers[i];
-		//					final ArrayList<ITouchArea> layerTouchAreas = layer.getTouchAreas();
-		//					final int layerTouchAreaCount = layerTouchAreas.size();
-		//					if(layerTouchAreaCount > 0) {
-		//						for(int j = 0; j < layerTouchAreaCount; j++) {
-		//							final ITouchArea layerTouchArea = layerTouchAreas.get(j);
-		//							if(layerTouchArea.contains(sceneTouchEventX, sceneTouchEventY)) {
-		//								final Boolean handled = this.onAreaTouchEvent(pSceneTouchEvent, sceneTouchEventX, sceneTouchEventY, layerTouchArea);
-		//								if(handled != null && handled) {
-		//									/* If binding of ITouchAreas is enabled and this is an ACTION_DOWN event,
-		//									 *  bind this ITouchArea to the PointerID. */
-		//									if(this.mTouchAreaBindingEnabled && isDownAction) {
-		//										this.mTouchAreaBindings.put(pSceneTouchEvent.getPointerID(), layerTouchArea);
-		//									}
-		//									return true;
-		//								}
-		//							}
-		//						}
-		//					}
-		//				}
-		//			} else { /* Front to back. */
-		//				for(int i = layerCount - 1; i >= 0; i--) {
-		//					final Layer layer = layers[i];
-		//					final ArrayList<ITouchArea> layerTouchAreas = layer.getTouchAreas();
-		//					final int layerTouchAreaCount = layerTouchAreas.size();
-		//					if(layerTouchAreaCount > 0) {
-		//						for(int j = layerTouchAreaCount - 1; j >= 0; j--) {
-		//							final ITouchArea layerTouchArea = layerTouchAreas.get(j);
-		//							if(layerTouchArea.contains(sceneTouchEventX, sceneTouchEventY)) {
-		//								final Boolean handled = this.onAreaTouchEvent(pSceneTouchEvent, sceneTouchEventX, sceneTouchEventY, layerTouchArea);
-		//								if(handled != null && handled) {
-		//									/* If binding of ITouchAreas is enabled and this is an ACTION_DOWN event,
-		//									 *  bind this ITouchArea to the PointerID. */
-		//									if(this.mTouchAreaBindingEnabled && isDownAction) {
-		//										this.mTouchAreaBindings.put(pSceneTouchEvent.getPointerID(), layerTouchArea);
-		//									}
-		//									return true;
-		//								}
-		//							}
-		//						}
-		//					}
-		//				}
-		//			}
-		//		}
+		/* First give the layers a chance to handle their TouchAreas. */
+		{
+			final int layerCount = this.mLayerCount;
+			final ILayer[] layers = this.mLayers;
+			if(this.mOnAreaTouchTraversalBackToFront) { /* Back to Front. */
+				for(int i = 0; i < layerCount; i++) {
+					final ILayer layer = layers[i];
+					final ArrayList<ITouchArea> layerTouchAreas = layer.getTouchAreas();
+					final int layerTouchAreaCount = layerTouchAreas.size();
+					if(layerTouchAreaCount > 0) {
+						for(int j = 0; j < layerTouchAreaCount; j++) {
+							final ITouchArea layerTouchArea = layerTouchAreas.get(j);
+							if(layerTouchArea.contains(sceneTouchEventX, sceneTouchEventY)) {
+								final Boolean handled = this.onAreaTouchEvent(pSceneTouchEvent, sceneTouchEventX, sceneTouchEventY, layerTouchArea);
+								if(handled != null && handled) {
+									/* If binding of ITouchAreas is enabled and this is an ACTION_DOWN event,
+									 *  bind this ITouchArea to the PointerID. */
+									if(this.mTouchAreaBindingEnabled && isDownAction) {
+										this.mTouchAreaBindings.put(pSceneTouchEvent.getPointerID(), layerTouchArea);
+									}
+									return true;
+								}
+							}
+						}
+					}
+				}
+			} else { /* Front to back. */
+				for(int i = layerCount - 1; i >= 0; i--) {
+					final ILayer layer = layers[i];
+					final ArrayList<ITouchArea> layerTouchAreas = layer.getTouchAreas();
+					final int layerTouchAreaCount = layerTouchAreas.size();
+					if(layerTouchAreaCount > 0) {
+						for(int j = layerTouchAreaCount - 1; j >= 0; j--) {
+							final ITouchArea layerTouchArea = layerTouchAreas.get(j);
+							if(layerTouchArea.contains(sceneTouchEventX, sceneTouchEventY)) {
+								final Boolean handled = this.onAreaTouchEvent(pSceneTouchEvent, sceneTouchEventX, sceneTouchEventY, layerTouchArea);
+								if(handled != null && handled) {
+									/* If binding of ITouchAreas is enabled and this is an ACTION_DOWN event,
+									 *  bind this ITouchArea to the PointerID. */
+									if(this.mTouchAreaBindingEnabled && isDownAction) {
+										this.mTouchAreaBindings.put(pSceneTouchEvent.getPointerID(), layerTouchArea);
+									}
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 
 		final ArrayList<ITouchArea> touchAreas = this.mTouchAreas;
 		final int touchAreaCount = touchAreas.size();
@@ -428,8 +446,8 @@ public class Scene extends Entity {
 
 	private Boolean onAreaTouchEvent(final TouchEvent pSceneTouchEvent, final float sceneTouchEventX, final float sceneTouchEventY, final ITouchArea touchArea) {
 		final float[] touchAreaLocalCoordinates = touchArea.convertSceneToLocalCoordinates(sceneTouchEventX, sceneTouchEventY);
-		final float touchAreaLocalX = touchAreaLocalCoordinates[Constants.VERTEX_INDEX_X];
-		final float touchAreaLocalY = touchAreaLocalCoordinates[Constants.VERTEX_INDEX_Y];
+		final float touchAreaLocalX = touchAreaLocalCoordinates[VERTEX_INDEX_X];
+		final float touchAreaLocalY = touchAreaLocalCoordinates[VERTEX_INDEX_Y];
 
 		final boolean handledSelf = touchArea.onAreaTouched(pSceneTouchEvent, touchAreaLocalX, touchAreaLocalY);
 		if(handledSelf) {
@@ -450,11 +468,11 @@ public class Scene extends Entity {
 		super.reset();
 
 		this.clearChildScene();
-	}
 
-	@Override
-	public void setParent(final IEntity pEntity) {
-		//		super.setParent(pEntity);
+		final ILayer[] layers = this.mLayers;
+		for(int i = this.mLayerCount - 1; i >= 0; i--) {
+			layers[i].reset();
+		}
 	}
 
 	// ===========================================================
@@ -471,6 +489,42 @@ public class Scene extends Entity {
 		if(this.mParentScene != null) {
 			this.mParentScene.clearChildScene();
 			this.mParentScene = null;
+		}
+	}
+
+	private void createLayers() {
+		final ILayer[] layers = this.mLayers;
+		for(int i = this.mLayerCount - 1; i >= 0; i--) {
+			layers[i] = new DynamicCapacityLayer();
+		}
+	}
+
+	private void createLayers(final boolean pFixedCapacityLayers, final int[] pLayerCapacities) {
+		final ILayer[] layers = this.mLayers;
+		if(pFixedCapacityLayers) {
+			for(int i = this.mLayerCount - 1; i >= 0; i--) {
+				layers[i] = new FixedCapacityLayer(pLayerCapacities[i]);
+			}
+		} else {
+			for(int i = this.mLayerCount - 1; i >= 0; i--) {
+				layers[i] = new DynamicCapacityLayer(pLayerCapacities[i]);
+			}
+		}
+	}
+
+	private void updateLayers(final float pSecondsElapsed) {
+		final ILayer[] layers = this.mLayers;
+		final int layerCount = this.mLayerCount;
+		for(int i = 0; i < layerCount; i++) {
+			layers[i].onUpdate(pSecondsElapsed);
+		}
+	}
+
+	private void drawLayers(final GL10 pGL, final Camera pCamera) {
+		final ILayer[] layers = this.mLayers;
+		final int layerCount = this.mLayerCount;
+		for(int i = 0; i < layerCount; i++) {
+			layers[i].onDraw(pGL, pCamera);
 		}
 	}
 
@@ -503,7 +557,7 @@ public class Scene extends Entity {
 		public float[] convertLocalToSceneCoordinates(final float pX, final float pY);
 
 		/**
-		 * This method only fires if this {@link ITouchArea} is registered to the {@link Scene} via {@link Scene#registerTouchArea(ITouchArea)} or to a {@link Layer} via {@link Layer#registerTouchArea(ITouchArea)}.
+		 * This method only fires if this {@link ITouchArea} is registered to the {@link Scene} via {@link Scene#registerTouchArea(ITouchArea)} or to a {@link ILayer} via {@link ILayer#registerTouchArea(ITouchArea)}.
 		 * @param pSceneTouchEvent
 		 * @return <code>true</code> if the event was handled (that means {@link IOnAreaTouchListener} of the {@link Scene} will not be fired!), otherwise <code>false</code>.
 		 */

@@ -4,6 +4,7 @@ import static org.anddev.andengine.util.constants.Constants.VERTEX_INDEX_X;
 import static org.anddev.andengine.util.constants.Constants.VERTEX_INDEX_Y;
 
 import org.anddev.andengine.entity.shape.RectangularShape;
+import org.anddev.andengine.util.MathUtils;
 
 /**
  * @author Nicolas Gramlich
@@ -62,10 +63,10 @@ public class RectangularShapeCollisionChecker extends ShapeCollisionChecker {
 	}
 
 	public static void fillVertices(final RectangularShape pRectangularShape, final float[] pVertices) {
-		final float left = 0;
-		final float top = 0;
-		final float right = pRectangularShape.getWidth();
-		final float bottom = pRectangularShape.getHeight();
+		final float left = pRectangularShape.getX();
+		final float top = pRectangularShape.getY();
+		final float right = pRectangularShape.getWidth() + left;
+		final float bottom = pRectangularShape.getHeight() + top;
 
 		pVertices[0 + VERTEX_INDEX_X] = left;
 		pVertices[0 + VERTEX_INDEX_Y] = top;
@@ -78,8 +79,10 @@ public class RectangularShapeCollisionChecker extends ShapeCollisionChecker {
 
 		pVertices[6 + VERTEX_INDEX_X] = left;
 		pVertices[6 + VERTEX_INDEX_Y] = bottom;
-		
-		pRectangularShape.getLocalToSceneTransformation().transform(pVertices);
+
+		MathUtils.rotateAndScaleAroundCenter(pVertices,
+				pRectangularShape.getRotation(), left + pRectangularShape.getRotationCenterX(), top + pRectangularShape.getRotationCenterY(),
+				pRectangularShape.getScaleX(), pRectangularShape.getScaleY(), left + pRectangularShape.getScaleCenterX(), top + pRectangularShape.getScaleCenterY());
 	}
 
 	// ===========================================================

@@ -1,18 +1,11 @@
 package org.anddev.andengine.entity.scene.menu.item.decorator;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-
 import javax.microedition.khronos.opengles.GL10;
 
 import org.anddev.andengine.engine.camera.Camera;
-import org.anddev.andengine.entity.IEntity;
-import org.anddev.andengine.entity.scene.Scene.ITouchArea;
 import org.anddev.andengine.entity.scene.menu.item.IMenuItem;
 import org.anddev.andengine.entity.shape.IShape;
 import org.anddev.andengine.input.touch.TouchEvent;
-import org.anddev.andengine.util.IEntityMatcher;
-import org.anddev.andengine.util.Transformation;
 import org.anddev.andengine.util.modifier.IModifier;
 
 /**
@@ -73,13 +66,13 @@ public abstract class BaseMenuItemDecorator implements IMenuItem {
 	}
 
 	@Override
-	public void addEntityModifier(final IModifier<IEntity> pEntityModifier) {
-		this.mMenuItem.addEntityModifier(pEntityModifier);
+	public void addShapeModifier(final IModifier<IShape> pShapeModifier) {
+		this.mMenuItem.addShapeModifier(pShapeModifier);
 	}
 
 	@Override
-	public void clearEntityModifiers() {
-		this.mMenuItem.clearEntityModifiers();
+	public void clearShapeModifiers() {
+		this.mMenuItem.clearShapeModifiers();
 	}
 
 	@Override
@@ -118,13 +111,13 @@ public abstract class BaseMenuItemDecorator implements IMenuItem {
 	}
 
 	@Override
-	public float getInitialX() {
-		return this.mMenuItem.getInitialX();
+	public float getBaseX() {
+		return this.mMenuItem.getBaseX();
 	}
 
 	@Override
-	public float getInitialY() {
-		return this.mMenuItem.getInitialY();
+	public float getBaseY() {
+		return this.mMenuItem.getBaseY();
 	}
 
 	@Override
@@ -238,8 +231,8 @@ public abstract class BaseMenuItemDecorator implements IMenuItem {
 	}
 
 	@Override
-	public boolean removeEntityModifier(final IModifier<IEntity> pEntityModifier) {
-		return this.mMenuItem.removeEntityModifier(pEntityModifier);
+	public boolean removeShapeModifier(final IModifier<IShape> pShapeModifier) {
+		return this.mMenuItem.removeShapeModifier(pShapeModifier);
 	}
 
 	@Override
@@ -273,8 +266,8 @@ public abstract class BaseMenuItemDecorator implements IMenuItem {
 	}
 
 	@Override
-	public void setInitialPosition() {
-		this.mMenuItem.setInitialPosition();
+	public void setBasePosition() {
+		this.mMenuItem.setBasePosition();
 	}
 
 	@Override
@@ -298,8 +291,8 @@ public abstract class BaseMenuItemDecorator implements IMenuItem {
 	}
 
 	@Override
-	public void setPosition(final IEntity pOtherEntity) {
-		this.mMenuItem.setPosition(pOtherEntity);
+	public void setPosition(final IShape pOtherShape) {
+		this.mMenuItem.setPosition(pOtherShape);
 	}
 
 	@Override
@@ -431,141 +424,6 @@ public abstract class BaseMenuItemDecorator implements IMenuItem {
 	@Override
 	public boolean onAreaTouched(final TouchEvent pSceneTouchEvent, final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
 		return this.mMenuItem.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
-	}
-
-	@Override
-	public int getChildCount() {
-		return this.mMenuItem.getChildCount();
-	}
-
-	@Override
-	public void attachChild(final IEntity pEntity) {
-		this.mMenuItem.attachChild(pEntity);
-	}
-
-	@Override
-	public IEntity getFirstChild() {
-		return this.mMenuItem.getFirstChild();
-	}
-
-	@Override
-	public IEntity getLastChild() {
-		return this.mMenuItem.getLastChild();
-	}
-
-	@Override
-	public IEntity findChild(final IEntityMatcher pEntityMatcher) {
-		return this.mMenuItem.findChild(pEntityMatcher);
-	}
-
-	@Override
-	public void sortChildren() {
-		this.mMenuItem.sortChildren();
-	}
-
-	@Override
-	public void sortChildren(final Comparator<IEntity> pEntityComparator) {
-		this.mMenuItem.sortChildren(pEntityComparator);
-	}
-
-	@Override
-	public boolean detachChild(final IEntity pEntity) {
-		return this.mMenuItem.detachChild(pEntity);
-	}
-
-	@Override
-	public boolean detachChild(final IEntityMatcher pEntityMatcher) {
-		return this.mMenuItem.detachChild(pEntityMatcher);
-	}
-
-	@Override
-	public boolean detachChildren(final IEntityMatcher pEntityMatcher) {
-		return this.mMenuItem.detachChildren(pEntityMatcher);
-	}
-
-	@Override
-	public void detachChildren() {
-		this.mMenuItem.detachChildren();
-	}
-
-	@Override
-	public ArrayList<ITouchArea> getTouchAreas() {
-		return this.mMenuItem.getTouchAreas();
-	}
-
-	@Override
-	public void registerTouchArea(final ITouchArea pTouchArea) {
-		this.mMenuItem.registerTouchArea(pTouchArea);
-	}
-
-	@Override
-	public void unregisterTouchArea(final ITouchArea pTouchArea) {
-		this.mMenuItem.unregisterTouchArea(pTouchArea);
-	}
-
-	@Override
-	public Transformation getLocalToSceneTransformation() {
-		return this.mMenuItem.getLocalToSceneTransformation();
-	}
-
-	@Override
-	public Transformation getSceneToLocalTransformation() {
-		return this.mMenuItem.getSceneToLocalTransformation();
-	}
-
-	@Override
-	public IEntity getParent() {
-		return this.mMenuItem.getParent();
-	}
-
-	@Override
-	public void setParent(final IEntity pEntity) {
-		this.mMenuItem.setParent(pEntity);
-	}
-
-	@Override
-	public boolean isVisible() {
-		return this.mMenuItem.isVisible();
-	}
-
-	@Override
-	public void setVisible(final boolean pVisible) {
-		this.mMenuItem.setVisible(pVisible);
-	}
-
-	@Override
-	public boolean isIgnoreUpdate() {
-		return this.mMenuItem.isIgnoreUpdate();
-	}
-
-	@Override
-	public void setIgnoreUpdate(final boolean pIgnoreUpdate) {
-		this.mMenuItem.setIgnoreUpdate(pIgnoreUpdate);
-	}
-
-	@Override
-	public void setUserData(final Object pUserData) {
-		this.mMenuItem.setUserData(pUserData);
-	}
-
-	@Override
-	public Object getUserData() {
-		return this.mMenuItem.getUserData();
-	}
-
-	@Override
-	public void onAttached() {
-		this.mMenuItem.onAttached();
-	}
-
-	@Override
-	public void onDetached() {
-		this.mMenuItem.onDetached();
-	}
-
-	@Override
-	public IEntity getChild(final int pIndex) {
-		return this.mMenuItem.getChild(pIndex);
 	}
 
 	// ===========================================================

@@ -1,16 +1,13 @@
-package org.anddev.andengine.entity.scene;
+package org.anddev.andengine.entity.shape.modifier;
 
-import org.anddev.andengine.engine.camera.Camera;
-import org.anddev.andengine.entity.shape.modifier.ScaleModifier;
-import org.anddev.andengine.entity.sprite.Sprite;
-import org.anddev.andengine.opengl.texture.region.TextureRegion;
-import org.anddev.andengine.util.modifier.ease.IEaseFunction;
+import org.anddev.andengine.entity.shape.IShape;
+import org.anddev.andengine.util.modifier.ParallelModifier;
 
 /**
  * @author Nicolas Gramlich
- * @since 09:45:02 - 03.05.2010
+ * @since 12:40:31 - 03.09.2010
  */
-public class SplashScene extends Scene {
+public class ParallelShapeModifier extends ParallelModifier<IShape> implements IShapeModifier {
 	// ===========================================================
 	// Constants
 	// ===========================================================
@@ -23,20 +20,21 @@ public class SplashScene extends Scene {
 	// Constructors
 	// ===========================================================
 
-	public SplashScene(final Camera pCamera, final TextureRegion pTextureRegion) {
-		this(pCamera, pTextureRegion, -1, 1, 1);
+	public ParallelShapeModifier(final IShapeModifier... pShapeModifiers) throws IllegalArgumentException {
+		super(pShapeModifiers);
 	}
 
-	public SplashScene(final Camera pCamera, final TextureRegion pTextureRegion, final float pDuration, final float pScaleFrom, final float pScaleTo) {
-		super(1);
+	public ParallelShapeModifier(final IShapeModifierListener pShapeModifierListener, final IShapeModifier... pShapeModifiers) throws IllegalArgumentException {
+		super(pShapeModifierListener, pShapeModifiers);
+	}
 
-		final Sprite loadingScreenSprite = new Sprite(pCamera.getMinX(), pCamera.getMinY(), pCamera.getWidth(), pCamera.getHeight(), pTextureRegion);
-		if(pScaleFrom != 1 || pScaleTo != 1) {
-			loadingScreenSprite.setScale(pScaleFrom);
-			loadingScreenSprite.addShapeModifier(new ScaleModifier(pDuration, pScaleFrom, pScaleTo, IEaseFunction.DEFAULT));
-		}
+	protected ParallelShapeModifier(final ParallelShapeModifier pParallelShapeModifier) {
+		super(pParallelShapeModifier);
+	}
 
-		this.getTopLayer().addEntity(loadingScreenSprite);
+	@Override
+	public ParallelShapeModifier clone() {
+		return new ParallelShapeModifier(this);
 	}
 
 	// ===========================================================
