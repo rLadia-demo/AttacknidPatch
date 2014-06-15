@@ -1,0 +1,22 @@
+This project is an attempt to patch the android application used to control the AttackNid combat robot toy. Users are unable to bring up the Attacknid connection screen leaving them unable to connect to and control their robot. From reviews online, the application hard codes the display of the connection screen with a physical button press. Newer versions of android phones lack physical buttons and are unable to bring up the screen.
+
+The following tools and utilities were used to generate source code for the Attacknid application.
+
+Application Link: https://play.google.com/store/apps/details?id=com.SixClawWorm
+
+Downloaded APK using 
+* apk-downloader (http://apps.evozi.com/apk-downloader/)
+
+Decompiled Assets and created Smali source code using:
+* apktool (https://code.google.com/p/android-apktool/)
+  apktool d Attacknids.apk
+Converted APK to Jar file using 
+* dex2jar (https://code.google.com/p/dex2jar/)
+  d2j-dex2jar Attacknids.apk
+
+Decompiled Jar to Java Source code using 
+* Procyon (https://bitbucket.org/mstrobel/procyon/wiki/Java%20Decompiler)
+  java -jar decompiler.jar -jar Attacknids-dex2jar.jar -o Procyon
+* CFR (http://www.benf.org/other/cfr/)
+  java -jar cfr_0_79.jar Attacknids-dex2jar.jar --outputdir CFR
+* JD-GUI (http://jd.benow.ca/)
