@@ -1,0 +1,212 @@
+Summary for Attacknids-dex2jar.jar
+Decompiled with CFR 0_79
+
+
+com.SixClawWorm.application.BluetoothChat
+----------------------------
+
+handleMessage(android.os.Message )
+  Exception : java.lang.ClassCastException: org.benf.cfr.reader.bytecode.analysis.parse.statement.ReturnNothingStatement cannot be cast to org.benf.cfr.reader.bytecode.analysis.parse.statement.CaseStatement
+
+
+com.SixClawWorm.application.BluetoothChatService
+----------------------------
+
+<init>(com.SixClawWorm.application.BluetoothChatService boolean )
+  Unable to fully structure code
+run()
+  Exception : org.benf.cfr.reader.util.CannotPerformDecode: reachable test BLOCK was exited and re-entered.
+<init>(com.SixClawWorm.application.BluetoothChatService android.bluetooth.BluetoothDevice boolean )
+  Unable to fully structure code
+
+
+com.SixClawWorm.application.MeetingApplication
+----------------------------
+
+exit()
+  Exception : org.benf.cfr.reader.util.ConfusedCFRException: Tried to end blocks [0[TRYBLOCK]], but top level block is 5[WHILELOOP]
+
+
+com.SixClawWorm.application.inTrodutionActivity
+----------------------------
+
+setZoomControlGone(android.view.View )
+  Exception : org.benf.cfr.reader.util.ConfusedCFRException: Tried to end blocks [0[TRYBLOCK]], but top level block is 5[CATCHBLOCK]
+
+
+com.SixClawWorm.utils.BitmapUtil
+----------------------------
+
+GetBitmap(java.lang.String int )
+  Unable to fully structure code
+
+
+com.badlogic.gdx.physics.box2d.World
+----------------------------
+
+getContactList()
+  Unable to fully structure code
+
+
+com.badlogic.gdx.utils.LongHashMap
+----------------------------
+
+put(long T )
+  Unable to fully structure code
+
+
+net.rbgrn.opengl.GLThread
+----------------------------
+
+guardedRun()
+  Exception : org.benf.cfr.reader.util.ConfusedCFRException: Tried to end blocks [21[DOLOOP]], but top level block is 6[TRYBLOCK]
+
+
+org.anddev.andengine.extension.multiplayer.protocol.shared.BaseConnector
+----------------------------
+
+run()
+  Exception : org.benf.cfr.reader.util.ConfusedCFRException: Tried to end blocks [0[TRYBLOCK]], but top level block is 10[CATCHBLOCK]
+
+
+org.anddev.andengine.opengl.buffer.BufferObjectManager
+----------------------------
+
+updateBufferObjects(javax.microedition.khronos.opengles.GL11 )
+  Unable to fully structure code
+
+
+org.anddev.andengine.opengl.texture.Texture
+----------------------------
+
+writeTextureToHardware(javax.microedition.khronos.opengles.GL10 )
+  Unable to fully structure code
+
+
+org.anddev.andengine.opengl.texture.TextureManager
+----------------------------
+
+updateTextures(javax.microedition.khronos.opengles.GL10 )
+  Unable to fully structure code
+
+
+org.anddev.andengine.opengl.view.GLSurfaceView
+----------------------------
+
+guardedRun()
+  Unable to fully structure code
+run()
+  Loose catch block
+
+
+org.anddev.andengine.util.Base64
+----------------------------
+
+encode(byte[] int int int )
+  Exception : java.lang.ClassCastException: org.benf.cfr.reader.bytecode.analysis.parse.statement.AssignmentSimple cannot be cast to org.benf.cfr.reader.bytecode.analysis.parse.statement.CaseStatement
+process(byte[] int int boolean )
+  Unable to fully structure code
+process(byte[] int int boolean )
+  Unable to fully structure code
+
+
+org.anddev.andengine.util.StreamUtils
+----------------------------
+
+copy(java.io.InputStream java.io.OutputStream long )
+  Unable to fully structure code
+
+
+org.anddev.andengine.entity.layer.tiled.tmx.TMXParser
+----------------------------
+
+startElement(java.lang.String java.lang.String java.lang.String org.xml.sax.Attributes )
+  Loose catch block
+
+
+org.anddev.andengine.entity.layer.tiled.tmx.TMXTileSet
+----------------------------
+
+setImageSource(android.content.Context org.anddev.andengine.opengl.texture.TextureManager org.xml.sax.Attributes )
+  Loose catch block
+
+
+org.anddev.andengine.extension.multiplayer.protocol.server.BaseServer
+----------------------------
+
+run()
+  Exception : org.benf.cfr.reader.util.ConfusedCFRException: Tried to end blocks [0[TRYBLOCK]], but top level block is 7[CATCHBLOCK]
+
+
+org.anddev.andengine.extension.physics.box2d.util.triangulation.EarClippingTriangulator
+----------------------------
+
+computeTriangles(java.util.List<com.badlogic.gdx.math.Vector2> )
+  Unable to fully structure code
+
+
+org.anddev.andengine.opengl.texture.buffer.TextTextureBuffer
+----------------------------
+
+update(org.anddev.andengine.opengl.font.Font java.lang.String[] )
+  Unable to fully structure code
+
+
+org.anddev.andengine.opengl.texture.source.FileTextureSource
+----------------------------
+
+<init>(java.io.File )
+  Unable to fully structure code
+onLoadBitmap()
+  Unable to fully structure code
+
+
+org.anddev.andengine.util.sort.InsertionSorter
+----------------------------
+
+sort(java.util.List<T> int int java.util.Comparator<T> )
+  Unable to fully structure code
+sort(T[] int int java.util.Comparator<T> )
+  Unable to fully structure code
+
+
+org.anddev.andengine.extension.physics.box2d.util.hull.GrahamScan
+----------------------------
+
+quicksort(int int )
+  Unable to fully structure code
+
+
+org.anddev.andengine.extension.physics.box2d.util.hull.QuickHull
+----------------------------
+
+partition(org.anddev.andengine.extension.physics.box2d.util.hull.Vector2Line int int )
+  Unable to fully structure code
+
+
+org.anddev.andengine.input.touch.detector.HoldDetector
+----------------------------
+
+onManagedTouchEvent(org.anddev.andengine.input.touch.TouchEvent )
+  Unable to fully structure code
+
+
+org.anddev.andengine.opengl.vertex.TextVertexBuffer
+----------------------------
+
+update(org.anddev.andengine.opengl.font.Font int int[] java.lang.String[] )
+  Exception : org.benf.cfr.reader.util.ConfusedCFRException: First case is not immediately after switch.
+
+
+org.anddev.andengine.entity.scene.Scene
+----------------------------
+
+onSceneTouchEvent(org.anddev.andengine.input.touch.TouchEvent )
+  Unable to fully structure code
+
+
+org.anddev.andengine.entity.layer.tiled.tmx.TMXLayer
+----------------------------
+
+initializeTMXTilesFromDataString(java.lang.String java.lang.String java.lang.String org.anddev.andengine.entity.layer.tiled.tmx.TMXLoader$ITMXTilePropertiesListener )
+  Unable to fully structure code
