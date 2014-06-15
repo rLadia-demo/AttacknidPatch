@@ -427,7 +427,6 @@ extends BaseGameActivity {
                         var1_1.printStackTrace();
                         continue;
                     }
-                    break;
                 }
                 return;
             }
