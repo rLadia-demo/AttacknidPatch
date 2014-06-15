@@ -1,6 +1,26 @@
+/*******************************************************************************
+ * Copyright 2010 Mario Zechner (contact@badlogicgames.com)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.badlogic.gdx.physics.box2d;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.JointDef.JointType;
 import com.badlogic.gdx.physics.box2d.joints.DistanceJoint;
 import com.badlogic.gdx.physics.box2d.joints.DistanceJointDef;
 import com.badlogic.gdx.physics.box2d.joints.FrictionJoint;
@@ -20,411 +40,639 @@ import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import com.badlogic.gdx.physics.box2d.joints.WeldJoint;
 import com.badlogic.gdx.physics.box2d.joints.WeldJointDef;
 import com.badlogic.gdx.utils.LongHashMap;
-import java.util.ArrayList;
-import java.util.List;
 
-public class World
-{
-  private final long addr;
-  protected final LongHashMap<Body> bodies = new LongHashMap(100);
-  private final Contact contact = new Contact(this, 0L);
-  private long[] contactAddrs = new long['È'];
-  protected ContactFilter contactFilter = null;
-  protected ContactListener contactListener = null;
-  private final ArrayList<Contact> contacts = new ArrayList();
-  protected final LongHashMap<Fixture> fixtures = new LongHashMap(100);
-  private final ArrayList<Contact> freeContacts = new ArrayList();
-  private int freeIdx = 0;
-  final Vector2 gravity = new Vector2();
-  protected final LongHashMap<Joint> joints = new LongHashMap(100);
-  private QueryCallback queryCallback = null;
-  final float[] tmpGravity = new float[2];
-  
-  public World(Vector2 paramVector2, boolean paramBoolean)
-  {
-    this.addr = newWorld(paramVector2.x, paramVector2.y, paramBoolean);
-    for (int i = 0;; i++)
-    {
-      if (i >= 200) {
-        return;
-      }
-      this.freeContacts.add(new Contact(this, 0L));
-    }
-  }
-  
-  private void beginContact(long paramLong)
-  {
-    this.contact.addr = paramLong;
-    if (this.contactListener != null) {
-      this.contactListener.beginContact(this.contact);
-    }
-  }
-  
-  private boolean contactFilter(long paramLong1, long paramLong2)
-  {
-    boolean bool = true;
-    if (this.contactFilter != null) {
-      bool = this.contactFilter.shouldCollide((Fixture)this.fixtures.get(paramLong1), (Fixture)this.fixtures.get(paramLong2));
-    }
-    Filter localFilter1;
-    Filter localFilter2;
-    do
-    {
-      return bool;
-      localFilter1 = ((Fixture)this.fixtures.get(paramLong1)).getFilterData();
-      localFilter2 = ((Fixture)this.fixtures.get(paramLong2)).getFilterData();
-      if ((localFilter1.groupIndex != localFilter2.groupIndex) || (localFilter1.groupIndex == 0)) {
-        break;
-      }
-    } while (localFilter1.groupIndex > 0);
-    return false;
-    if (((localFilter1.maskBits & localFilter2.categoryBits) != 0) && ((localFilter1.categoryBits & localFilter2.maskBits) != 0)) {
-      return bool;
-    }
-    return false;
-  }
-  
-  private long createProperJoint(JointDef paramJointDef)
-  {
-    if (paramJointDef.type == JointDef.JointType.DistanceJoint)
-    {
-      DistanceJointDef localDistanceJointDef = (DistanceJointDef)paramJointDef;
-      return jniCreateDistanceJoint(this.addr, localDistanceJointDef.bodyA.addr, localDistanceJointDef.bodyB.addr, localDistanceJointDef.collideConnected, localDistanceJointDef.localAnchorA.x, localDistanceJointDef.localAnchorA.y, localDistanceJointDef.localAnchorB.x, localDistanceJointDef.localAnchorB.y, localDistanceJointDef.length, localDistanceJointDef.frequencyHz, localDistanceJointDef.dampingRatio);
-    }
-    if (paramJointDef.type == JointDef.JointType.FrictionJoint)
-    {
-      FrictionJointDef localFrictionJointDef = (FrictionJointDef)paramJointDef;
-      return jniCreateFrictionJoint(this.addr, localFrictionJointDef.bodyA.addr, localFrictionJointDef.bodyB.addr, localFrictionJointDef.collideConnected, localFrictionJointDef.localAnchorA.x, localFrictionJointDef.localAnchorA.y, localFrictionJointDef.localAnchorB.x, localFrictionJointDef.localAnchorB.y, localFrictionJointDef.maxForce, localFrictionJointDef.maxTorque);
-    }
-    if (paramJointDef.type == JointDef.JointType.GearJoint)
-    {
-      GearJointDef localGearJointDef = (GearJointDef)paramJointDef;
-      return jniCreateGearJoint(this.addr, localGearJointDef.bodyA.addr, localGearJointDef.bodyB.addr, localGearJointDef.collideConnected, localGearJointDef.joint1.addr, localGearJointDef.joint2.addr, localGearJointDef.ratio);
-    }
-    if (paramJointDef.type == JointDef.JointType.LineJoint)
-    {
-      LineJointDef localLineJointDef = (LineJointDef)paramJointDef;
-      return jniCreateLineJoint(this.addr, localLineJointDef.bodyA.addr, localLineJointDef.bodyB.addr, localLineJointDef.collideConnected, localLineJointDef.localAnchorA.x, localLineJointDef.localAnchorA.y, localLineJointDef.localAnchorB.x, localLineJointDef.localAnchorB.y, localLineJointDef.localAxisA.x, localLineJointDef.localAxisA.y, localLineJointDef.enableLimit, localLineJointDef.lowerTranslation, localLineJointDef.upperTranslation, localLineJointDef.enableMotor, localLineJointDef.maxMotorForce, localLineJointDef.motorSpeed);
-    }
-    if (paramJointDef.type == JointDef.JointType.MouseJoint)
-    {
-      MouseJointDef localMouseJointDef = (MouseJointDef)paramJointDef;
-      return jniCreateMouseJoint(this.addr, localMouseJointDef.bodyA.addr, localMouseJointDef.bodyB.addr, localMouseJointDef.collideConnected, localMouseJointDef.target.x, localMouseJointDef.target.y, localMouseJointDef.maxForce, localMouseJointDef.frequencyHz, localMouseJointDef.dampingRatio);
-    }
-    if (paramJointDef.type == JointDef.JointType.PrismaticJoint)
-    {
-      PrismaticJointDef localPrismaticJointDef = (PrismaticJointDef)paramJointDef;
-      return jniCreatePrismaticJoint(this.addr, localPrismaticJointDef.bodyA.addr, localPrismaticJointDef.bodyB.addr, localPrismaticJointDef.collideConnected, localPrismaticJointDef.localAnchorA.x, localPrismaticJointDef.localAnchorA.y, localPrismaticJointDef.localAnchorB.x, localPrismaticJointDef.localAnchorB.y, localPrismaticJointDef.localAxis1.x, localPrismaticJointDef.localAxis1.y, localPrismaticJointDef.referenceAngle, localPrismaticJointDef.enableLimit, localPrismaticJointDef.lowerTranslation, localPrismaticJointDef.upperTranslation, localPrismaticJointDef.enableMotor, localPrismaticJointDef.maxMotorForce, localPrismaticJointDef.motorSpeed);
-    }
-    if (paramJointDef.type == JointDef.JointType.PulleyJoint)
-    {
-      PulleyJointDef localPulleyJointDef = (PulleyJointDef)paramJointDef;
-      return jniCreatePulleyJoint(this.addr, localPulleyJointDef.bodyA.addr, localPulleyJointDef.bodyB.addr, localPulleyJointDef.collideConnected, localPulleyJointDef.groundAnchorA.x, localPulleyJointDef.groundAnchorA.y, localPulleyJointDef.groundAnchorB.x, localPulleyJointDef.groundAnchorB.y, localPulleyJointDef.localAnchorA.x, localPulleyJointDef.localAnchorA.y, localPulleyJointDef.localAnchorB.x, localPulleyJointDef.localAnchorB.y, localPulleyJointDef.lengthA, localPulleyJointDef.maxLengthA, localPulleyJointDef.lengthB, localPulleyJointDef.maxLengthB, localPulleyJointDef.ratio);
-    }
-    if (paramJointDef.type == JointDef.JointType.RevoluteJoint)
-    {
-      RevoluteJointDef localRevoluteJointDef = (RevoluteJointDef)paramJointDef;
-      return jniCreateRevoluteJoint(this.addr, localRevoluteJointDef.bodyA.addr, localRevoluteJointDef.bodyB.addr, localRevoluteJointDef.collideConnected, localRevoluteJointDef.localAnchorA.x, localRevoluteJointDef.localAnchorA.y, localRevoluteJointDef.localAnchorB.x, localRevoluteJointDef.localAnchorB.y, localRevoluteJointDef.referenceAngle, localRevoluteJointDef.enableLimit, localRevoluteJointDef.lowerAngle, localRevoluteJointDef.upperAngle, localRevoluteJointDef.enableMotor, localRevoluteJointDef.motorSpeed, localRevoluteJointDef.maxMotorTorque);
-    }
-    if (paramJointDef.type == JointDef.JointType.WeldJoint)
-    {
-      WeldJointDef localWeldJointDef = (WeldJointDef)paramJointDef;
-      return jniCreateWeldJoint(this.addr, localWeldJointDef.bodyA.addr, localWeldJointDef.bodyB.addr, localWeldJointDef.collideConnected, localWeldJointDef.localAnchorA.x, localWeldJointDef.localAnchorA.y, localWeldJointDef.localAnchorB.x, localWeldJointDef.localAnchorB.y, localWeldJointDef.referenceAngle);
-    }
-    return 0L;
-  }
-  
-  private void endContact(long paramLong)
-  {
-    this.contact.addr = paramLong;
-    this.contact.GetWorldManifold();
-    if (this.contactListener != null) {
-      this.contactListener.endContact(this.contact);
-    }
-  }
-  
-  private native void jniClearForces(long paramLong);
-  
-  private native long jniCreateBody(long paramLong, int paramInt, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5, float paramFloat6, float paramFloat7, float paramFloat8, boolean paramBoolean1, boolean paramBoolean2, boolean paramBoolean3, boolean paramBoolean4, boolean paramBoolean5, float paramFloat9);
-  
-  private native long jniCreateDistanceJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5, float paramFloat6, float paramFloat7);
-  
-  private native long jniCreateFrictionJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5, float paramFloat6);
-  
-  private native long jniCreateGearJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean, long paramLong4, long paramLong5, float paramFloat);
-  
-  private native long jniCreateLineJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean1, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5, float paramFloat6, boolean paramBoolean2, float paramFloat7, float paramFloat8, boolean paramBoolean3, float paramFloat9, float paramFloat10);
-  
-  private native long jniCreateMouseJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5);
-  
-  private native long jniCreatePrismaticJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean1, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5, float paramFloat6, float paramFloat7, boolean paramBoolean2, float paramFloat8, float paramFloat9, boolean paramBoolean3, float paramFloat10, float paramFloat11);
-  
-  private native long jniCreatePulleyJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5, float paramFloat6, float paramFloat7, float paramFloat8, float paramFloat9, float paramFloat10, float paramFloat11, float paramFloat12, float paramFloat13);
-  
-  private native long jniCreateRevoluteJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean1, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5, boolean paramBoolean2, float paramFloat6, float paramFloat7, boolean paramBoolean3, float paramFloat8, float paramFloat9);
-  
-  private native long jniCreateWeldJoint(long paramLong1, long paramLong2, long paramLong3, boolean paramBoolean, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4, float paramFloat5);
-  
-  private native void jniDestroyBody(long paramLong1, long paramLong2);
-  
-  private native void jniDestroyJoint(long paramLong1, long paramLong2);
-  
-  private native void jniDispose(long paramLong);
-  
-  private native boolean jniGetAutoClearForces(long paramLong);
-  
-  private native int jniGetBodyCount(long paramLong);
-  
-  private native int jniGetContactCount(long paramLong);
-  
-  private native void jniGetContactList(long paramLong, long[] paramArrayOfLong);
-  
-  private native void jniGetGravity(long paramLong, float[] paramArrayOfFloat);
-  
-  private native int jniGetJointcount(long paramLong);
-  
-  private native int jniGetProxyCount(long paramLong);
-  
-  private native boolean jniIsLocked(long paramLong);
-  
-  private native void jniQueryAABB(long paramLong, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4);
-  
-  private native void jniSetAutoClearForces(long paramLong, boolean paramBoolean);
-  
-  private native void jniSetContiousPhysics(long paramLong, boolean paramBoolean);
-  
-  private native void jniSetGravity(long paramLong, float paramFloat1, float paramFloat2);
-  
-  private native void jniSetWarmStarting(long paramLong, boolean paramBoolean);
-  
-  private native void jniStep(long paramLong, float paramFloat, int paramInt1, int paramInt2);
-  
-  private native long newWorld(float paramFloat1, float paramFloat2, boolean paramBoolean);
-  
-  private boolean reportFixture(long paramLong)
-  {
-    if (this.queryCallback != null) {
-      return this.queryCallback.reportFixture((Fixture)this.fixtures.get(paramLong));
-    }
-    return false;
-  }
-  
-  public void QueryAABB(QueryCallback paramQueryCallback, float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4)
-  {
-    this.queryCallback = paramQueryCallback;
-    jniQueryAABB(this.addr, paramFloat1, paramFloat2, paramFloat3, paramFloat4);
-  }
-  
-  public void clearForces()
-  {
-    jniClearForces(this.addr);
-  }
-  
-  public Body createBody(BodyDef paramBodyDef)
-  {
-    Body localBody = new Body(this, jniCreateBody(this.addr, paramBodyDef.type.getValue(), paramBodyDef.position.x, paramBodyDef.position.y, paramBodyDef.angle, paramBodyDef.linearVelocity.x, paramBodyDef.linearVelocity.y, paramBodyDef.angularVelocity, paramBodyDef.linearDamping, paramBodyDef.angularDamping, paramBodyDef.allowSleep, paramBodyDef.awake, paramBodyDef.fixedRotation, paramBodyDef.bullet, paramBodyDef.active, paramBodyDef.inertiaScale));
-    this.bodies.put(localBody.addr, localBody);
-    return localBody;
-  }
-  
-  public Joint createJoint(JointDef paramJointDef)
-  {
-    long l = createProperJoint(paramJointDef);
-    JointDef.JointType localJointType1 = paramJointDef.type;
-    JointDef.JointType localJointType2 = JointDef.JointType.DistanceJoint;
-    Object localObject = null;
-    if (localJointType1 == localJointType2) {
-      localObject = new DistanceJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.FrictionJoint) {
-      localObject = new FrictionJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.GearJoint) {
-      localObject = new GearJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.LineJoint) {
-      localObject = new LineJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.MouseJoint) {
-      localObject = new MouseJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.PrismaticJoint) {
-      localObject = new PrismaticJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.PulleyJoint) {
-      localObject = new PulleyJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.RevoluteJoint) {
-      localObject = new RevoluteJoint(this, l);
-    }
-    if (paramJointDef.type == JointDef.JointType.WeldJoint) {
-      localObject = new WeldJoint(this, l);
-    }
-    if (localObject != null) {
-      this.joints.put(((Joint)localObject).addr, localObject);
-    }
-    JointEdge localJointEdge1 = new JointEdge(paramJointDef.bodyB, (Joint)localObject);
-    JointEdge localJointEdge2 = new JointEdge(paramJointDef.bodyA, (Joint)localObject);
-    ((Joint)localObject).jointEdgeA = localJointEdge1;
-    ((Joint)localObject).jointEdgeB = localJointEdge2;
-    paramJointDef.bodyA.joints.add(localJointEdge1);
-    paramJointDef.bodyB.joints.add(localJointEdge2);
-    return localObject;
-  }
-  
-  public void destroyBody(Body paramBody)
-  {
-    this.bodies.remove(paramBody.addr);
-    int i = 0;
-    if (i >= paramBody.getFixtureList().size()) {}
-    for (int j = 0;; j++)
-    {
-      if (j >= paramBody.getJointList().size())
-      {
-        jniDestroyBody(this.addr, paramBody.addr);
-        return;
-        this.fixtures.remove(((Fixture)paramBody.getFixtureList().get(i)).addr);
-        i++;
-        break;
-      }
-      this.joints.remove(((JointEdge)paramBody.getJointList().get(j)).joint.addr);
-    }
-  }
-  
-  public void destroyJoint(Joint paramJoint)
-  {
-    this.joints.remove(paramJoint.addr);
-    paramJoint.jointEdgeA.other.joints.remove(paramJoint.jointEdgeB);
-    paramJoint.jointEdgeB.other.joints.remove(paramJoint.jointEdgeA);
-    jniDestroyJoint(this.addr, paramJoint.addr);
-  }
-  
-  public void dispose()
-  {
-    jniDispose(this.addr);
-  }
-  
-  public boolean getAutoClearForces()
-  {
-    return jniGetAutoClearForces(this.addr);
-  }
-  
-  public Iterable<Body> getBodies()
-  {
-    return this.bodies.values();
-  }
-  
-  public int getBodyCount()
-  {
-    return jniGetBodyCount(this.addr);
-  }
-  
-  public int getContactCount()
-  {
-    return jniGetContactCount(this.addr);
-  }
-  
-  public List<Contact> getContactList()
-  {
-    int i = getContactCount();
-    if (i > this.contactAddrs.length) {
-      this.contactAddrs = new long[i];
-    }
-    int m;
-    if (i > this.freeContacts.size())
-    {
-      int k = this.freeContacts.size();
-      m = 0;
-      if (m < i - k) {}
-    }
-    else
-    {
-      jniGetContactList(this.addr, this.contactAddrs);
-      this.contacts.clear();
-    }
-    for (int j = 0;; j++)
-    {
-      if (j >= i)
-      {
-        return this.contacts;
-        this.freeContacts.add(new Contact(this, 0L));
-        m++;
-        break;
-      }
-      Contact localContact = (Contact)this.freeContacts.get(j);
-      localContact.addr = this.contactAddrs[j];
-      this.contacts.add(localContact);
-    }
-  }
-  
-  public Vector2 getGravity()
-  {
-    jniGetGravity(this.addr, this.tmpGravity);
-    this.gravity.x = this.tmpGravity[0];
-    this.gravity.y = this.tmpGravity[1];
-    return this.gravity;
-  }
-  
-  public int getJointCount()
-  {
-    return jniGetJointcount(this.addr);
-  }
-  
-  public Iterable<Joint> getJoints()
-  {
-    return this.joints.values();
-  }
-  
-  public int getProxyCount()
-  {
-    return jniGetProxyCount(this.addr);
-  }
-  
-  public boolean isLocked()
-  {
-    return jniIsLocked(this.addr);
-  }
-  
-  public void setAutoClearForces(boolean paramBoolean)
-  {
-    jniSetAutoClearForces(this.addr, paramBoolean);
-  }
-  
-  public void setContactFilter(ContactFilter paramContactFilter)
-  {
-    this.contactFilter = paramContactFilter;
-  }
-  
-  public void setContactListener(ContactListener paramContactListener)
-  {
-    this.contactListener = paramContactListener;
-  }
-  
-  public void setContinuousPhysics(boolean paramBoolean)
-  {
-    jniSetContiousPhysics(this.addr, paramBoolean);
-  }
-  
-  public void setDestructionListener(DestructionListener paramDestructionListener) {}
-  
-  public void setGravity(Vector2 paramVector2)
-  {
-    jniSetGravity(this.addr, paramVector2.x, paramVector2.y);
-  }
-  
-  public void setWarmStarting(boolean paramBoolean)
-  {
-    jniSetWarmStarting(this.addr, paramBoolean);
-  }
-  
-  public void step(float paramFloat, int paramInt1, int paramInt2)
-  {
-    jniStep(this.addr, paramFloat, paramInt1, paramInt2);
-  }
-}
-
-
-/* Location:           C:\Users\Rodelle\Desktop\Attacknid\Tools\Attacknids-dex2jar.jar
- * Qualified Name:     com.badlogic.gdx.physics.box2d.World
- * JD-Core Version:    0.7.0.1
+/**
+ * The world class manages all physics entities, dynamic simulation,
+ * and asynchronous queries. The world also contains efficient memory
+ * management facilities.
+ * @author mzechner
  */
+public class World 
+{
+	
+	/** the address of the world instance **/
+	private final long addr;
+	
+	/** all known bodies **/
+	protected final LongHashMap<Body> bodies = new LongHashMap<Body>(100);
+	
+	/** all known fixtures **/
+	protected final LongHashMap<Fixture> fixtures = new LongHashMap<Fixture>(100);
+	
+	/** all known joints **/
+	protected final LongHashMap<Joint> joints = new LongHashMap<Joint>( 100 );
+	
+	/** Contact filter **/
+	protected ContactFilter contactFilter = null;
+	
+	/** Contact listener **/
+	protected ContactListener contactListener = null;		
+	
+	/**
+	 * Construct a world object.
+	 * @param gravity the world gravity vector.
+	 * @param doSleep improve performance by not simulating inactive bodies.
+	 */
+	public World( Vector2 gravity, boolean doSleep )
+	{
+		addr = newWorld( gravity.x, gravity.y, doSleep );	
+		
+		for( int i = 0; i < 200; i++ )
+			freeContacts.add( new Contact( this, 0 ) );
+	}
+	
+	private native long newWorld( float gravityX, float gravityY, boolean doSleep );
+	
+	/**
+	 *  Register a destruction listener. The listener is owned by you and must
+	 * remain in scope.
+	 */
+	public void setDestructionListener(DestructionListener listener)
+	{
+		
+	}
+
+	/**
+	 *  Register a contact filter to provide specific control over collision.
+	 * Otherwise the default filter is used (b2_defaultFilter). The listener is
+	 * owned by you and must remain in scope.
+	 */ 
+	public void setContactFilter(ContactFilter filter)
+	{
+		this.contactFilter = filter;
+	}
+
+	/**
+	 *  Register a contact event listener. The listener is owned by you and must
+	 * remain in scope.
+	 */
+	public void setContactListener(ContactListener listener)
+	{
+		this.contactListener = listener;
+	}
+
+	/**
+	 *  Create a rigid body given a definition. No reference to the definition
+	 * is retained.
+	 * @warning This function is locked during callbacks.
+	 */
+	public Body createBody(BodyDef def)
+	{
+		Body body = new Body( this, jniCreateBody( addr, 
+										def.type.getValue(),
+										def.position.x, def.position.y,
+										def.angle, 
+										def.linearVelocity.x, def.linearVelocity.y,
+										def.angularVelocity,
+										def.linearDamping,
+										def.angularDamping, 
+										def.allowSleep,
+										def.awake, 
+										def.fixedRotation,
+										def.bullet,
+										def.active,
+										def.inertiaScale) );
+		this.bodies.put( body.addr, body );
+		return body;
+	}
+	
+	private native long jniCreateBody( long addr, 
+									   int type, 
+									   float positionX, float positionY,
+									   float angle,
+									   float linearVelocityX, float linearVelocityY,
+									   float angularVelocity,
+									   float linearDamping,
+									   float angularDamping,
+									   boolean allowSleep,
+									   boolean awake,
+									   boolean fixedRotation,
+									   boolean bullet,
+									   boolean active,
+									   float intertiaScale ); 
+
+	/**
+	 * Destroy a rigid body given a definition. No reference to the definition
+	 * is retained. This function is locked during callbacks.
+	 * @warning This automatically deletes all associated shapes and joints.
+	 * @warning This function is locked during callbacks.
+	 */
+	public void destroyBody(Body body)
+	{		
+		this.bodies.remove( body.addr );
+		for( int i = 0; i < body.getFixtureList().size(); i++ )
+			this.fixtures.remove(body.getFixtureList().get(i).addr);
+		for( int i = 0; i < body.getJointList().size(); i++ )
+			this.joints.remove(body.getJointList().get(i).joint.addr);
+		jniDestroyBody( addr, body.addr );
+	}
+
+	private native void jniDestroyBody( long addr, long bodyAddr );
+	
+	/** 
+	 * Create a joint to constrain bodies together. No reference to the definition
+	 * is retained. This may cause the connected bodies to cease colliding.
+	 * @warning This function is locked during callbacks.
+	 */
+	public Joint createJoint(JointDef def)
+	{
+		long jointAddr = createProperJoint( def );
+		Joint joint = null;
+		if( def.type == JointType.DistanceJoint )
+			joint = new DistanceJoint( this, jointAddr );
+		if( def.type == JointType.FrictionJoint )
+			joint = new FrictionJoint( this, jointAddr );
+		if( def.type == JointType.GearJoint )
+			joint = new GearJoint( this, jointAddr );
+		if( def.type == JointType.LineJoint )
+			joint = new LineJoint( this, jointAddr );
+		if( def.type == JointType.MouseJoint )
+			joint = new MouseJoint( this, jointAddr );
+		if( def.type == JointType.PrismaticJoint )
+			joint = new PrismaticJoint( this, jointAddr);
+		if( def.type == JointType.PulleyJoint )
+			joint = new PulleyJoint( this, jointAddr );
+		if( def.type == JointType.RevoluteJoint )
+			joint = new RevoluteJoint( this, jointAddr );
+		if( def.type == JointType.WeldJoint )
+			joint = new WeldJoint( this, jointAddr );
+		if( joint != null )
+			joints.put( joint.addr, joint );
+		JointEdge jointEdgeA = new JointEdge( def.bodyB, joint );
+		JointEdge jointEdgeB = new JointEdge( def.bodyA, joint ); 
+		joint.jointEdgeA = jointEdgeA;
+		joint.jointEdgeB = jointEdgeB;
+		def.bodyA.joints.add( jointEdgeA );
+		def.bodyB.joints.add( jointEdgeB );
+		return joint;
+	}
+	
+	private long createProperJoint( JointDef def )
+	{
+		if( def.type == JointType.DistanceJoint )
+		{
+			DistanceJointDef d = (DistanceJointDef)def;
+			return jniCreateDistanceJoint( addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected, 
+										   d.localAnchorA.x, d.localAnchorA.y,
+										   d.localAnchorB.x, d.localAnchorB.y, 
+										   d.length, d.frequencyHz, d.dampingRatio);
+		}		
+		if( def.type == JointType.FrictionJoint )
+		{
+			FrictionJointDef d = (FrictionJointDef)def;
+			return jniCreateFrictionJoint( addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected,
+										   d.localAnchorA.x, d.localAnchorA.y,
+										   d.localAnchorB.x, d.localAnchorB.y,
+										   d.maxForce,
+										   d.maxTorque );
+		}
+		if( def.type == JointType.GearJoint )
+		{
+			GearJointDef d = (GearJointDef)def;
+			return jniCreateGearJoint(addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected,
+									  d.joint1.addr, d.joint2.addr, d.ratio );
+		}
+		if( def.type == JointType.LineJoint )
+		{
+			LineJointDef d = (LineJointDef)def;
+			return jniCreateLineJoint(addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected,
+									  d.localAnchorA.x, d.localAnchorA.y,
+									  d.localAnchorB.x, d.localAnchorB.y,
+									  d.localAxisA.x, d.localAxisA.y,
+									  d.enableLimit,
+									  d.lowerTranslation,
+									  d.upperTranslation,
+									  d.enableMotor, 
+									  d.maxMotorForce, 
+									  d.motorSpeed ); 
+									  
+		}
+		if( def.type == JointType.MouseJoint )
+		{
+			MouseJointDef d = (MouseJointDef)def;
+			return jniCreateMouseJoint(addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected,
+									   d.target.x, d.target.y, d.maxForce, d.frequencyHz, d.dampingRatio );
+		}
+		if( def.type == JointType.PrismaticJoint )
+		{
+			PrismaticJointDef d = (PrismaticJointDef)def;
+			return jniCreatePrismaticJoint(addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected, 
+					  					   d.localAnchorA.x, d.localAnchorA.y,
+					  					   d.localAnchorB.x, d.localAnchorB.y,
+					  					   d.localAxis1.x, d.localAxis1.y,
+					  					   d.referenceAngle, 
+					  					   d.enableLimit, 
+					  					   d.lowerTranslation, 
+					  					   d.upperTranslation, 
+					  					   d.enableMotor, 
+					  					   d.maxMotorForce, 
+					  					   d.motorSpeed );
+		}
+		if( def.type == JointType.PulleyJoint )
+		{
+			PulleyJointDef d = (PulleyJointDef)def;
+			return jniCreatePulleyJoint(addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected,
+										d.groundAnchorA.x, d.groundAnchorA.y,
+										d.groundAnchorB.x, d.groundAnchorB.y, 
+										d.localAnchorA.x, d.localAnchorA.y,
+										d.localAnchorB.x, d.localAnchorB.y,
+										d.lengthA,
+										d.maxLengthA,
+										d.lengthB, 
+										d.maxLengthB, 
+										d.ratio );
+										
+		}
+		if( def.type == JointType.RevoluteJoint )
+		{
+			RevoluteJointDef d = (RevoluteJointDef)def;
+			return jniCreateRevoluteJoint(addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected,
+										  d.localAnchorA.x, d.localAnchorA.y,
+										  d.localAnchorB.x, d.localAnchorB.y,
+										  d.referenceAngle, 
+										  d.enableLimit, 
+										  d.lowerAngle, 
+										  d.upperAngle, 
+										  d.enableMotor, 
+										  d.motorSpeed, 
+										  d.maxMotorTorque );			
+		}
+		if( def.type == JointType.WeldJoint )
+		{
+			WeldJointDef d = (WeldJointDef)def;
+			return jniCreateWeldJoint(addr, d.bodyA.addr, d.bodyB.addr, d.collideConnected,
+									  d.localAnchorA.x, d.localAnchorA.y,
+									  d.localAnchorB.x, d.localAnchorB.y,
+									  d.referenceAngle );
+		}
+		
+		return 0;
+	}
+	
+	private native long jniCreateDistanceJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+												float localAnchorAX, float localAnchorAY, 
+												float localAnchorBX, float localAnchorBY,
+												float length,
+												float frequencyHz,
+												float dampingRatio );
+	
+	private native long jniCreateFrictionJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+												float localAnchorAX, float localAnchorAY, 
+												float localAnchorBX, float localAnchorBY,
+												float maxForce,
+												float maxTorque);
+	
+	private native long jniCreateGearJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+											long joint1,
+											long joint2,
+											float ratio
+											);
+	
+	private native long jniCreateLineJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+											float localAnchorAX, float localAnchorAY, 
+											float localAnchorBX, float localAnchorBY,
+											float localAxisAX, float localAxisAY,
+											boolean enableLimit,
+											float lowerTranslation,
+											float upperTranslation,
+											boolean enableMotor,
+											float maxMotorForce,
+											float motorSpeed );
+	
+	private native long jniCreateMouseJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+											 float targetX, float targetY,
+											 float maxForce,
+											 float frequencyHz,
+											 float dampingRatio);
+	
+	private native long jniCreatePrismaticJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+												 float localAnchorAX, float localAnchorAY, 
+												 float localAnchorBX, float localAnchorBY,
+												 float localAxisAX, float localAxisAY,
+												 float referenceAngle,
+												 boolean enableLimit,
+												 float lowerTranslation,
+												 float upperTranslation,
+												 boolean enableMotor,
+												 float maxMotorForce,
+												 float motorSpeed );
+	
+	private native long jniCreatePulleyJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+											  float groundAnchorAX, float groundAnchorAY,
+											  float groundAnchorBX, float groundAnchorBY,
+											  float localAnchorAX, float localAnchorAY,
+											  float localAnchorBX, float localAnchorBY,
+											  float lengthA,
+											  float maxLengthA,
+											  float lengthB,
+											  float maxLengthB,
+											  float ratio);
+	
+	private native long jniCreateRevoluteJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+											    float localAnchorAX, float localAnchorAY,
+											    float localAnchorBX, float localAnchorBY,
+											    float referenceAngle,
+											    boolean enableLimit,
+											    float lowerAngle,
+											    float upperAngle,
+											    boolean enableMotor,
+											    float motorSpeed,
+											    float maxMotorTorque);
+	
+	private native long jniCreateWeldJoint( long addr, long bodyA, long bodyB, boolean collideConnected,
+										    float localAnchorAX, float localAnchorAY,
+										    float localAnchorBX, float localAnchorBY,
+										    float referenceAngle);	
+		
+	/**
+	 * Destroy a joint. This may cause the connected bodies to begin colliding.
+	 * @warning This function is locked during callbacks.
+	 */
+	public void destroyJoint(Joint joint)
+	{		
+		joints.remove(joint.addr);
+		joint.jointEdgeA.other.joints.remove(joint.jointEdgeB);
+		joint.jointEdgeB.other.joints.remove(joint.jointEdgeA);
+		jniDestroyJoint( addr, joint.addr );
+	}
+	
+	private native void jniDestroyJoint( long addr, long jointAddr );
+
+	/**
+	 * Take a time step. This performs collision detection, integration,
+	 * and constraint solution.
+	 * @param timeStep the amount of time to simulate, this should not vary.
+	 * @param velocityIterations for the velocity constraint solver.
+	 * @param positionIterations for the position constraint solver.
+	 */
+	public void step(	float timeStep,
+						int velocityIterations,
+						int positionIterations)
+	{
+		jniStep( addr, timeStep, velocityIterations, positionIterations );
+	}
+	
+	private native void jniStep( long addr, float timeStep, int velocityIterations, int positionIterations );
+
+	/**
+	 * Call this after you are done with time steps to clear the forces. You normally	 
+	 * call this after each call to Step, unless you are performing sub-steps. By default,
+	 * forces will be automatically cleared, so you don't need to call this function.
+	 * @see SetAutoClearForces
+	 */
+	public void clearForces()
+	{
+		jniClearForces(addr);
+	}
+
+	private native void jniClearForces(long addr);
+	
+	/**
+	 * Enable/disable warm starting. For testing.
+	 */
+	public void setWarmStarting(boolean flag)
+	{
+		jniSetWarmStarting(addr, flag);
+	}
+
+	private native void jniSetWarmStarting( long addr, boolean flag );
+	
+	/**
+	 * Enable/disable continuous physics. For testing.
+	 */
+	public void setContinuousPhysics(boolean flag)
+	{
+		jniSetContiousPhysics(addr, flag);
+	}
+	
+	private native void jniSetContiousPhysics( long addr, boolean flag );
+
+	/**
+	 * Get the number of broad-phase proxies.
+	 */
+	public int getProxyCount()
+	{
+		return jniGetProxyCount(addr);
+	}
+	
+	private native int jniGetProxyCount( long addr );
+
+	/**
+	 * Get the number of bodies.
+	 */
+	public int getBodyCount()
+	{
+		return jniGetBodyCount(addr);
+	}
+	
+	private native int jniGetBodyCount( long addr );
+
+	/**
+	 * Get the number of joints.
+	 */
+	public int getJointCount()
+	{
+		return jniGetJointcount(addr);
+	}
+	
+	private native int jniGetJointcount( long addr );
+	
+	/**
+	 * Get the number of contacts (each may have 0 or more contact points).
+	 */
+	public int getContactCount()
+	{
+		return jniGetContactCount( addr );
+	}
+
+	private native int jniGetContactCount( long addr );
+	
+	/**
+	 * Change the global gravity vector.
+	 */
+	public void setGravity(Vector2 gravity)
+	{
+		jniSetGravity( addr, gravity.x, gravity.y );
+	}
+	
+	private native void jniSetGravity( long addr, float gravityX, float gravityY );
+	
+	/**
+	 * Get the global gravity vector.
+	 */
+	final float[] tmpGravity = new float[2];
+	final Vector2 gravity = new Vector2( );	
+	public Vector2 getGravity()
+	{
+		jniGetGravity( addr, tmpGravity );
+		gravity.x = tmpGravity[0]; gravity.y = tmpGravity[1];
+		return gravity;
+	}
+
+	private native void jniGetGravity( long addr, float[] gravity ); 
+	
+	/**
+	 * Is the world locked (in the middle of a time step).
+	 */	
+	public boolean isLocked()
+	{
+		return jniIsLocked( addr );
+	}
+
+	private native boolean jniIsLocked( long addr );
+	
+	/**
+	 *  Set flag to control automatic clearing of forces after each time step.
+	 */
+	public void setAutoClearForces(boolean flag)
+	{
+		jniSetAutoClearForces(addr, flag);
+	}
+
+	private native void jniSetAutoClearForces( long addr, boolean flag );
+	
+	/**
+	 *  Get the flag that controls automatic clearing of forces after each time step.
+	 */
+	public boolean getAutoClearForces()
+	{
+		return jniGetAutoClearForces( addr );
+	}
+	
+	private native boolean jniGetAutoClearForces( long addr );
+	
+	/**
+	 *  Query the world for all fixtures that potentially overlap the
+	 * provided AABB.
+	 * @param callback a user implemented callback class.
+	 * @param aabb the query box.
+	 */
+	public void QueryAABB(QueryCallback callback, float lowerX, float lowerY, float upperX, float upperY )
+	{
+		queryCallback = callback;
+		jniQueryAABB( addr, lowerX, lowerY, upperX, upperY );
+	}
+	
+	private QueryCallback queryCallback = null;;
+	
+	private native void jniQueryAABB( long addr, float lowX, float lowY, float upX, float upY );
+	
+//
+//	/// Ray-cast the world for all fixtures in the path of the ray. Your callback
+//	/// controls whether you get the closest point, any point, or n-points.
+//	/// The ray-cast ignores shapes that contain the starting point.
+//	/// @param callback a user implemented callback class.
+//	/// @param point1 the ray starting point
+//	/// @param point2 the ray ending point
+//	void RayCast(b2RayCastCallback* callback, const b2Vec2& point1, const b2Vec2& point2) const;
+//
+//	/// Get the world contact list. With the returned contact, use b2Contact::GetNext to get
+//	/// the next contact in the world list. A NULL contact indicates the end of the list.
+//	/// @return the head of the world contact list.
+//	/// @warning contacts are 
+//	b2Contact* GetContactList();
+	
+	private long[] contactAddrs = new long[200];	
+	private final ArrayList<Contact> contacts = new ArrayList<Contact>( );
+	private final ArrayList<Contact> freeContacts = new ArrayList<Contact>( );
+	private int freeIdx = 0;
+	
+	public List<Contact> getContactList( )
+	{
+		int numContacts = getContactCount();
+		if( numContacts > contactAddrs.length )
+			contactAddrs = new long[numContacts];
+		if( numContacts > freeContacts.size() )
+		{
+			int freeConts = freeContacts.size();
+			for( int i = 0; i < numContacts - freeConts; i++ )
+				freeContacts.add( new Contact( this, 0 ) );
+		}
+		jniGetContactList( addr, contactAddrs );
+		
+		contacts.clear();			
+		for( int i = 0; i < numContacts; i++ )
+		{
+			Contact contact = freeContacts.get(i);
+			contact.addr = contactAddrs[i];
+			contacts.add( contact );
+		}
+		
+		return contacts;
+	}
+	
+	/**
+	 * @return all bodies currently in the simulation
+	 */
+	public Iterable<Body> getBodies( )
+	{
+		return bodies.values();
+	}
+	
+	/**
+	 * @return all joints currently in the simulation
+	 */
+	public Iterable<Joint> getJoints( )
+	{
+		return joints.values();
+	}
+		
+	private native void jniGetContactList( long addr, long[] contacts );
+	
+	public void dispose( )
+	{
+		jniDispose( addr );
+	}
+	
+	private native void jniDispose( long addr );	
+	
+	/**
+	 * Internal method called from JNI in case a contact happens
+	 * @param fixtureA
+	 * @param fixtureB
+	 * @return
+	 */
+	private boolean contactFilter( long fixtureA, long fixtureB )
+	{
+		if( contactFilter != null )
+			return contactFilter.shouldCollide( fixtures.get(fixtureA), fixtures.get(fixtureB));
+		else
+		{
+			Filter filterA = fixtures.get(fixtureA).getFilterData();
+			Filter filterB = fixtures.get(fixtureB).getFilterData();					
+
+			if (filterA.groupIndex == filterB.groupIndex && filterA.groupIndex != 0)
+			{
+				return filterA.groupIndex > 0;
+			}
+
+			boolean collide = (filterA.maskBits & filterB.categoryBits) != 0 && (filterA.categoryBits & filterB.maskBits) != 0;
+			return collide;
+		}
+	}
+		
+	private final Contact contact = new Contact(this, 0 );
+	
+	private void beginContact( long contactAddr )
+	{
+		contact.addr = contactAddr;		
+		if( contactListener != null )
+			contactListener.beginContact( contact );
+	}
+	
+	private void endContact( long contactAddr )
+	{
+		contact.addr = contactAddr;
+		contact.GetWorldManifold();	
+		if( contactListener != null )
+			contactListener.endContact( contact );
+	}
+	
+	private boolean reportFixture( long addr )
+	{
+		if( queryCallback != null )
+			return queryCallback.reportFixture( fixtures.get( addr ) );
+		else
+			return false;
+	}
+}
