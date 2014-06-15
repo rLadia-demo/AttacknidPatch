@@ -68,7 +68,7 @@ public class MenuActivity
             MenuActivity.this.startActivity(localIntent2);
             return;
           }
-          if (i == 1920)
+          if (i == 1920 || i == 1794)
           {
             Intent localIntent3 = new Intent(MenuActivity.this, PlayControlActivity1920.class);
             MenuActivity.this.startActivity(localIntent3);
