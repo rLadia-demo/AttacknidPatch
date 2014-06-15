@@ -171,6 +171,7 @@ public abstract class BaseOnScreenControl extends HUD implements IOnSceneTouchLi
 				if(this.mActivePointerID == INVALID_POINTER_ID) {
 					this.mActivePointerID = pointerID;
 					this.updateControlKnob(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					this.mOnScreenControlListener.onControlKnobDown(this);
 					return true;
 				}
 				break;
@@ -179,6 +180,7 @@ public abstract class BaseOnScreenControl extends HUD implements IOnSceneTouchLi
 				if(this.mActivePointerID == pointerID) {
 					this.mActivePointerID = INVALID_POINTER_ID;
 					this.onHandleControlKnobReleased();
+					this.mOnScreenControlListener.onControlKnobUp(this);
 					return true;
 				}
 				break;
@@ -211,5 +213,9 @@ public abstract class BaseOnScreenControl extends HUD implements IOnSceneTouchLi
 		 * @param pValueY between <code>-1</code> (up) to <code>1</code> (down).
 		 */
 		public void onControlChange(final BaseOnScreenControl pBaseOnScreenControl, final float pValueX, final float pValueY);
+
+		public void onControlKnobUp(BaseOnScreenControl baseOnScreenControl);
+
+		public void onControlKnobDown(BaseOnScreenControl baseOnScreenControl);
 	}
 }
